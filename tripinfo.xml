@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2022-06-12 19:34:58 by Eclipse SUMO GUI Version 1.12.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="C:\Users\ricca\PycharmProjects\TrafficLightSim\venv\Simulation\osm.net.xml"/>
+        <route-files value="C:\Users\ricca\PycharmProjects\TrafficLightSim\venv\Simulation\demand_1.rou.xml"/>
+        <additional-files value="C:\Users\ricca\PycharmProjects\TrafficLightSim\venv\Simulation\detectors.xml"/>
+    </input>
+
+    <output>
+        <tripinfo-output value="tripinfo.xml"/>
+    </output>
+
+    <processing>
+        <waiting-time-memory value="10000"/>
+    </processing>
+
+    <report>
+        <no-warnings value="true"/>
+        <duration-log.disable value="true"/>
+        <no-step-log value="true"/>
+    </report>
+
+    <traci_server>
+        <remote-port value="62006"/>
+    </traci_server>
+
+</configuration>
