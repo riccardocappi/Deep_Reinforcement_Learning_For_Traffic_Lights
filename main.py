@@ -21,13 +21,13 @@ def get_options():
     options, args = opt_parser.parse_args()
     return options
 
-
+# Gets the phases of the simulation envirorment
 def get_phases():
     logic = traci.trafficlight.getAllProgramLogics(id_tfl[0])
     p = logic[0].getPhases()
     return p
 
-
+# Returns a dictionary where keys are phases indexes and values are phases states
 def get_actions_dict():
     phases_dict = {}
     i = 0
@@ -80,11 +80,11 @@ def get_max_waiting_time_per_lane():
     waiting_time_list = []
     for i, lane in enumerate(controlled_lanes_id):
         last_veh_list = get_veh_id_per_lane(lane)
-        max_waiting_time = 0.0
-        if len(last_veh_list) != 0:
+        max_waiting_time = 0
+        if len(last_veh_list) > 0:
             veh = max(last_veh_list, key=lambda x: traci.vehicle.getAccumulatedWaitingTime(x))
             max_waiting_time = traci.vehicle.getAccumulatedWaitingTime(veh)
-        waiting_time_list.append(max_waiting_time)
+        waiting_time_list.append(int(max_waiting_time))
     return waiting_time_list
 
 
@@ -104,7 +104,7 @@ def run(epochs=100,train=True, ai=True):
         yellow_duration_ctr = yellow_duration
         is_yellow = False
         pred_phase = ''
-        traci.start([checkBinary('sumo'), "-c", "./Simulation/osm_1.sumocfg","--no-step-log", "true","-W",
+        traci.start([checkBinary('sumo'), "-c", sim_name,"--no-step-log", "true","-W",
                      "--tripinfo-output", "tripinfo.xml", "--duration-log.disable", '--waiting-time-memory', '10000'])
         last_phase_index = 0
         set_phase(get_predicted_phase_state(last_phase_index))
@@ -130,9 +130,9 @@ def run(epochs=100,train=True, ai=True):
                         total_length += jam_lenght
                         total_waiting_time += waiting_time
 
-                        last_reward = (sum(last_jam_length) - sum_jam_length) + (
+                        reward = (sum(last_jam_length) - sum_jam_length) + (
                                 -0.3*sum_waiting_time)
-                        action = brain.update(last_reward, signal, train)
+                        action = brain.update(reward, signal, train)
                         scores.append(brain.score())
                         pred_phase = get_predicted_phase_state(action)
                         yellow_phase = get_yellows(get_predicted_phase_state(last_phase_index), pred_phase)
@@ -149,20 +149,21 @@ def run(epochs=100,train=True, ai=True):
 
         if event % event_cycle == 0:
             ep += 1
+            avg_waiting_time = sum(total_waiting_time) / len(total_waiting_time)
             print("An epoch passed", ep)
             print("Max jam length", max(total_length))
             print("Max waiting time", max(total_waiting_time))
             print("Average jam length", sum(total_length) / len(total_length))
-            print("Average waiting time", sum(total_waiting_time) / len(total_waiting_time))
+            print("Average waiting time", avg_waiting_time)
             print("Memory size", len(brain.memory.memory))
             print()
-            evaluate_brain = max(total_waiting_time)
+            evaluate_brain = avg_waiting_time
             total_length = []
             total_waiting_time = []
             if check_best_brain > 0:
                 if evaluate_brain < check_best_brain:
                     brain.save()
-                    print("Salvataggio")
+                    print("Saving")
                     check_best_brain = evaluate_brain
             else:
                 check_best_brain = evaluate_brain
@@ -185,8 +186,9 @@ if __name__ == "__main__":
     else:
         sumoBinary = checkBinary('sumo-gui')
 
+    sim_name = "./Simulation/osm_1.sumocfg"
     # traci starts sumo as a subprocess and then this script connects and runs
-    traci.start([checkBinary('sumo'), "-c", "./Simulation/osm_1.sumocfg", "--no-step-log", "true", "-W",
+    traci.start([checkBinary('sumo'), "-c", sim_name, "--no-step-log", "true", "-W",
                  "--tripinfo-output", "tripinfo.xml", "--duration-log.disable"])
     id_tfl = traci.trafficlight.getIDList()
     phases = get_phases()
@@ -204,10 +206,10 @@ if __name__ == "__main__":
 
     traci.close()
 
-    event_cycle = 6
+    event_cycle = 5
     brain = Dqn(13, 3, 0.99)
-    brain.load()
+    # brain.load()
     scores = []
     min_duration = 10
     yellow_duration = 6
-    run(train=False)
+    run(train=True)

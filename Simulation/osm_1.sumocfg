@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2022-04-29 00:22:36 by Eclipse SUMO GUI Version 1.12.0
+<!-- generated on 2022-06-19 19:23:25 by Eclipse SUMO GUI Version 1.12.0
 -->
 
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
 
     <input>
-        <net-file value="C:\Users\ricca\PycharmProjects\TrafficLightSim\venv\Simulation\osm.net.xml"/>
-        <route-files value="C:\Users\ricca\PycharmProjects\TrafficLightSim\venv\Simulation\demand_1.rou.xml"/>
-        <additional-files value="C:\Users\ricca\PycharmProjects\TrafficLightSim\venv\Simulation\detectors.xml"/>
+        <net-file value="C:\Users\ricca\PycharmProjects\DeepReinforcementLearning_TrafficLight\Simulation\osm.net.xml"/>
+        <route-files value="C:\Users\ricca\PycharmProjects\DeepReinforcementLearning_TrafficLight\Simulation\demand.rou.xml"/>
+        <additional-files value="C:\Users\ricca\PycharmProjects\DeepReinforcementLearning_TrafficLight\Simulation\detectors.xml"/>
     </input>
 
 </configuration>

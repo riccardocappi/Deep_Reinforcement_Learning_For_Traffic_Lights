@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2022-05-05 18:30:35 by Eclipse SUMO netedit Version 1.12.0
+<!-- generated on 2022-06-19 19:21:19 by Eclipse SUMO netedit Version 1.12.0
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
 
     <input>
-        <sumo-net-file value="C:\Users\ricca\PycharmProjects\TrafficLightSim\venv\Simulation\osm.net.xml"/>
+        <sumo-net-file value="C:\Users\ricca\PycharmProjects\DeepReinforcementLearning_TrafficLight\Simulation\osm.net.xml"/>
     </input>
 
     <output>
-        <output-file value="C:\Users\ricca\PycharmProjects\TrafficLightSim\venv\Simulation\osm.net.xml"/>
+        <output-file value="C:\Users\ricca\PycharmProjects\DeepReinforcementLearning_TrafficLight\Simulation\osm.net.xml"/>
         <output.street-names value="true"/>
     </output>
 
@@ -31,7 +31,7 @@
     </pedestrian>
 
     <netedit>
-        <additional-files value="C:\Users\ricca\PycharmProjects\TrafficLightSim\venv\Simulation\detectors.xml"/>
+        <additional-files value="C:\Users\ricca\PycharmProjects\DeepReinforcementLearning_TrafficLight\Simulation\detectors.xml"/>
     </netedit>
 
     <report>

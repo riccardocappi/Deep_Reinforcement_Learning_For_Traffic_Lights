@@ -45,7 +45,7 @@ class Dqn():
         self.gamma = gamma
         self.reward_window = []
         self.model = Network(input_size, n_actions)
-        self.memory = ReplayMemory(20000)
+        self.memory = ReplayMemory(50000)
         self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
         self.last_state = torch.Tensor(input_size).unsqueeze(0)
         self.last_action = 0
@@ -87,9 +87,9 @@ class Dqn():
         return sum(self.reward_window) / (len(self.reward_window) + 1.)
 
     def save(self):
-        torch.save({'state_dict': self.model.state_dict(),
-                    'optimizer': self.optimizer.state_dict(),
-                    }, 'last_brain.pth')
+        torch.save({'state_dict_1': self.model.state_dict(),
+                    'optimizer_1': self.optimizer.state_dict(),
+                    }, 'last_brain_1.pth')
 
     def load(self):
         if os.path.isfile('last_brain.pth'):

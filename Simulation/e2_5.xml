@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2022-06-19 22:34:00 by Eclipse SUMO sumo Version 1.12.0
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="C:\Users\ricca\PycharmProjects\DeepReinforcementLearning_TrafficLight\Simulation\osm.net.xml"/>
+        <route-files value="C:\Users\ricca\PycharmProjects\DeepReinforcementLearning_TrafficLight\Simulation\demand.rou.xml"/>
+        <additional-files value="C:\Users\ricca\PycharmProjects\DeepReinforcementLearning_TrafficLight\Simulation\detectors.xml"/>
+    </input>
+
+    <output>
+        <tripinfo-output value="tripinfo.xml"/>
+    </output>
+
+    <processing>
+        <waiting-time-memory value="10000"/>
+    </processing>
+
+    <report>
+        <no-warnings value="true"/>
+        <duration-log.disable value="true"/>
+        <no-step-log value="true"/>
+    </report>
+
+    <traci_server>
+        <remote-port value="64716"/>
+    </traci_server>
+
+</configuration>
+-->
+
+<detector xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/det_e2_file.xsd">
+   <interval begin="0.00" end="300.00" id="e2_5" sampledSeconds="1383.50" nVehEntered="25" nVehLeft="20" nVehSeen="25" meanSpeed="1.69" meanTimeLoss="48.63" meanOccupancy="22.77" maxOccupancy="40.00" meanMaxJamLengthInVehicles="3.33" meanMaxJamLengthInMeters="22.91" maxJamLengthInVehicles="7" maxJamLengthInMeters="50.29" jamLengthInVehiclesSum="998" jamLengthInMetersSum="6871.85" meanHaltingDuration="28.72" maxHaltingDuration="60.00" haltingDurationSum="1034.00" meanIntervalHaltingDuration="28.72" maxIntervalHaltingDuration="60.00" intervalHaltingDurationSum="1034.00" startedHalts="36.00" meanVehicleNumber="4.64" maxVehicleNumber="8" />
+</detector>
