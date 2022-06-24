@@ -93,7 +93,7 @@ def set_phase(phase):
 
 
 # contains TraCI control loop
-def run(epochs=100,train=True, ai=True):
+def run(epochs=20,train=True, ai=True):
     ep = 0
     check_best_brain = 0
     event = 0
@@ -104,7 +104,7 @@ def run(epochs=100,train=True, ai=True):
         yellow_duration_ctr = yellow_duration
         is_yellow = False
         pred_phase = ''
-        traci.start([checkBinary('sumo'), "-c", sim_name,"--no-step-log", "true","-W",
+        traci.start([checkBinary('sumo-gui'), "-c", sim_name,"--no-step-log", "true","-W",
                      "--tripinfo-output", "tripinfo.xml", "--duration-log.disable", '--waiting-time-memory', '10000'])
         last_phase_index = 0
         set_phase(get_predicted_phase_state(last_phase_index))
@@ -208,8 +208,8 @@ if __name__ == "__main__":
 
     event_cycle = 5
     brain = Dqn(13, 3, 0.99)
-    # brain.load()
+    brain.load()
     scores = []
     min_duration = 10
     yellow_duration = 6
-    run(train=True)
+    run(train=False)
