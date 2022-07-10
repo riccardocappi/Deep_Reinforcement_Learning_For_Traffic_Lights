@@ -92,13 +92,42 @@ def set_phase(phase):
     traci.trafficlight.setRedYellowGreenState(id_tfl[0], phase)
 
 
+def do_stats(tot_length, tot_waiting_time):
+    global total_length
+    global total_waiting_time
+    total_length += tot_length
+    total_waiting_time += tot_waiting_time
+
+
+def print_summary(ep):
+    print("An epoch passed", ep)
+    print("Max jam length", max(total_length))
+    print("Max waiting time", max(total_waiting_time))
+    print("Average jam length", sum(total_length) / len(total_length))
+    print("Average waiting time", sum(total_waiting_time) / len(total_waiting_time))
+    print("Memory size", len(brain.memory.memory))
+    print()
+
+
+def evaluate_brain(last_check_best_brain):
+    evaluate_function = abs(sum(brain.temp_reward_window) / float(len(brain.temp_reward_window)))
+    if last_check_best_brain == -1.0:
+        return evaluate_function
+
+    if evaluate_function < last_check_best_brain:
+        brain.save()
+        print("Saving")
+        return evaluate_function
+    return last_check_best_brain
+
+
 # contains TraCI control loop
-def run(epochs=20,train=True, ai=True):
+def run(epochs=30, train=True, ai=True, event_cycle=5):
     ep = 0
-    check_best_brain = 0
+    check_best_brain = -1.0
     event = 0
-    total_length = []
-    total_waiting_time = []
+    global total_length
+    global total_waiting_time
     while ep < epochs:
         min_duration_ctr = min_duration
         yellow_duration_ctr = yellow_duration
@@ -107,7 +136,8 @@ def run(epochs=20,train=True, ai=True):
         traci.start([checkBinary('sumo-gui'), "-c", sim_name,"--no-step-log", "true","-W",
                      "--tripinfo-output", "tripinfo.xml", "--duration-log.disable", '--waiting-time-memory', '10000'])
         last_phase_index = 0
-        set_phase(get_predicted_phase_state(last_phase_index))
+        if ai:
+            set_phase(get_predicted_phase_state(last_phase_index))
         event += 1
         last_jam_length = get_detectors_jam_length()
         while traci.simulation.getMinExpectedNumber() > 0:
@@ -115,20 +145,19 @@ def run(epochs=20,train=True, ai=True):
                 if is_yellow:
                     yellow_duration_ctr -= 1
                     if yellow_duration_ctr == 0:
-                        set_phase(pred_phase)
                         is_yellow = False
                         yellow_duration_ctr = yellow_duration
+                        do_stats(get_detectors_jam_length(), get_max_waiting_time_per_lane())
+                        set_phase(pred_phase)
                 else:
                     min_duration_ctr -= 1
                     if min_duration_ctr == 0:
                         # AI Code
-                        jam_lenght = get_detectors_jam_length()
+                        jam_length = get_detectors_jam_length()
                         waiting_time = get_max_waiting_time_per_lane()
-                        signal = [last_phase_index] + jam_lenght + waiting_time
+                        signal = [last_phase_index] + jam_length + waiting_time
                         sum_waiting_time = sum(waiting_time)
-                        sum_jam_length = sum(jam_lenght)
-                        total_length += jam_lenght
-                        total_waiting_time += waiting_time
+                        sum_jam_length = sum(jam_length)
 
                         reward = (sum(last_jam_length) - sum_jam_length) + (
                                 -0.3*sum_waiting_time)
@@ -137,37 +166,24 @@ def run(epochs=20,train=True, ai=True):
                         pred_phase = get_predicted_phase_state(action)
                         yellow_phase = get_yellows(get_predicted_phase_state(last_phase_index), pred_phase)
                         last_phase_index = action
-                        last_jam_length = jam_lenght
+                        last_jam_length = jam_length
                         set_phase(yellow_phase)
                         is_yellow = "y" in yellow_phase
+                        if not is_yellow:
+                            do_stats(jam_length, waiting_time)
                         min_duration_ctr = min_duration
             else:
-                total_length += get_detectors_jam_length()
-                total_waiting_time += get_max_waiting_time_per_lane()
-
+                do_stats(get_detectors_jam_length(), get_max_waiting_time_per_lane())
             traci.simulationStep()
 
         if event % event_cycle == 0:
             ep += 1
-            avg_waiting_time = sum(total_waiting_time) / len(total_waiting_time)
-            print("An epoch passed", ep)
-            print("Max jam length", max(total_length))
-            print("Max waiting time", max(total_waiting_time))
-            print("Average jam length", sum(total_length) / len(total_length))
-            print("Average waiting time", avg_waiting_time)
-            print("Memory size", len(brain.memory.memory))
-            print()
-            evaluate_brain = avg_waiting_time
-            total_length = []
+            print_summary(ep)
+            if train:
+                check_best_brain = evaluate_brain(check_best_brain)
+            brain.temp_reward_window.clear()
             total_waiting_time = []
-            if check_best_brain > 0:
-                if evaluate_brain < check_best_brain:
-                    brain.save()
-                    print("Saving")
-                    check_best_brain = evaluate_brain
-            else:
-                check_best_brain = evaluate_brain
-
+            total_length = []
         traci.close()
         sys.stdout.flush()
 
@@ -204,10 +220,12 @@ if __name__ == "__main__":
         "406769345_1": ("-406769344#0_1", "-406769344#2_1")
     }
 
+    total_length = []
+    total_waiting_time = []
+
     traci.close()
 
-    event_cycle = 5
-    brain = Dqn(13, 3, 0.99)
+    brain = Dqn(13, 3, 0.9)
     brain.load()
     scores = []
     min_duration = 10

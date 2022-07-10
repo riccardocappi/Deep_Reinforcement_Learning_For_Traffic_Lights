@@ -13,7 +13,7 @@ class Network(nn.Module):
         super(Network, self).__init__()
         self.input_size = input_size
         self.n_actions = n_actions
-        self.hidden_layer_nodes = 64
+        self.hidden_layer_nodes = 79
         self.fc1 = nn.Linear(input_size,self.hidden_layer_nodes)
         self.fc2 = nn.Linear(self.hidden_layer_nodes, n_actions)
 
@@ -44,13 +44,14 @@ class Dqn():
     def __init__(self, input_size, n_actions, gamma):
         self.gamma = gamma
         self.reward_window = []
+        self.temp_reward_window = []
         self.model = Network(input_size, n_actions)
-        self.memory = ReplayMemory(50000)
-        self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
+        self.memory = ReplayMemory(5000)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=0.0001)
         self.last_state = torch.Tensor(input_size).unsqueeze(0)
         self.last_action = 0
         self.last_reward = 0
-        self.batch_size = 32
+        self.batch_size = 16
 
     def select_action(self, state):
         with torch.no_grad():
@@ -79,6 +80,7 @@ class Dqn():
         self.last_state = new_state
         self.last_reward = reward
         self.reward_window.append(reward)
+        self.temp_reward_window.append(reward)
         if len(self.reward_window) > 1000000:
             del self.reward_window[0]
         return action
@@ -87,9 +89,9 @@ class Dqn():
         return sum(self.reward_window) / (len(self.reward_window) + 1.)
 
     def save(self):
-        torch.save({'state_dict_1': self.model.state_dict(),
-                    'optimizer_1': self.optimizer.state_dict(),
-                    }, 'last_brain_1.pth')
+        torch.save({'state_dict_3': self.model.state_dict(),
+                    'optimizer_3': self.optimizer.state_dict(),
+                    }, 'last_brain_3.pth')
 
     def load(self):
         if os.path.isfile('last_brain.pth'):
