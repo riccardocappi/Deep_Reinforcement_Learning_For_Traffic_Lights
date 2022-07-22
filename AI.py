@@ -47,7 +47,8 @@ class Dqn():
         self.temp_reward_window = []
         self.model = Network(input_size, n_actions)
         self.memory = ReplayMemory(5000)
-        self.optimizer = optim.Adam(self.model.parameters(), lr=0.0001)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=0.0001
+)
         self.last_state = torch.Tensor(input_size).unsqueeze(0)
         self.last_action = 0
         self.last_reward = 0
@@ -70,28 +71,30 @@ class Dqn():
 
     def update(self, reward, new_signal, train):
         new_state = torch.Tensor(new_signal).float().unsqueeze(0)
+        action = self.select_action(new_state)
+        self.reward_window.append(reward)
+        if len(self.reward_window) > 1000000:
+            del self.reward_window[0]
+        if not train:
+            return action
         self.memory.push(
             (self.last_state, new_state, torch.LongTensor([int(self.last_action)]), torch.Tensor([self.last_reward])))
-        action = self.select_action(new_state)
-        if len(self.memory.memory) > self.batch_size and train:
+        if len(self.memory.memory) > self.batch_size:
             batch_state, batch_next_state, batch_action, batch_reward = self.memory.sample(self.batch_size)
             self.learn(batch_state, batch_next_state, batch_reward, batch_action)
         self.last_action = action
         self.last_state = new_state
         self.last_reward = reward
-        self.reward_window.append(reward)
         self.temp_reward_window.append(reward)
-        if len(self.reward_window) > 1000000:
-            del self.reward_window[0]
         return action
 
     def score(self):
         return sum(self.reward_window) / (len(self.reward_window) + 1.)
 
     def save(self):
-        torch.save({'state_dict_3': self.model.state_dict(),
-                    'optimizer_3': self.optimizer.state_dict(),
-                    }, 'last_brain_3.pth')
+        torch.save({'state_dict_5': self.model.state_dict(),
+                    'optimizer_5': self.optimizer.state_dict(),
+                    }, 'last_brain_5.pth')
 
     def load(self):
         if os.path.isfile('last_brain.pth'):
