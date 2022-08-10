@@ -13,7 +13,7 @@ class Network(nn.Module):
         super(Network, self).__init__()
         self.input_size = input_size
         self.n_actions = n_actions
-        self.hidden_layer_nodes = 120
+        self.hidden_layer_nodes = 40
         self.fc1 = nn.Linear(input_size, self.hidden_layer_nodes)
         self.fc2 = nn.Linear(self.hidden_layer_nodes, n_actions)
 
@@ -96,11 +96,11 @@ class Dqn():
                     }, 'last_brain_8.pth')
 
     def load(self):
-        if os.path.isfile('last_brain_7.pth'):
+        if os.path.isfile('last_brain_8.pth'):
             print("=> loading checkpoint... ")
-            checkpoint = torch.load('last_brain_7.pth')
-            self.model.load_state_dict(checkpoint['state_dict_7'])
-            self.optimizer.load_state_dict(checkpoint['optimizer_7'])
+            checkpoint = torch.load('last_brain_8.pth')
+            self.model.load_state_dict(checkpoint['state_dict_8'])
+            self.optimizer.load_state_dict(checkpoint['optimizer_8'])
             print("done !")
         else:
             print("no checkpoint found...")

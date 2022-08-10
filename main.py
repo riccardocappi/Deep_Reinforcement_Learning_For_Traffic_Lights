@@ -85,7 +85,7 @@ def get_max_waiting_time_per_lane():
 
 def set_phase(phase, duration):
     traci.trafficlight.setRedYellowGreenState(id_tfl[0], phase)
-    for _ in range(duration):
+    for _ in range(int(duration)):
         traci.simulationStep()
 
 
@@ -155,7 +155,7 @@ def run(epochs=35, train=True, ai=True, event_cycle=5):
     global total_waiting_time
     while ep < epochs:
         event += 1
-        traci.start([checkBinary('sumo-gui'), "-c", sim_name, "--no-step-log", "true", "-W",
+        traci.start([checkBinary('sumo'), "-c", sim_name, "--no-step-log", "true", "-W",
                      "--tripinfo-output", "tripinfo.xml", "--duration-log.disable", '--waiting-time-memory', '10000'])
         run_simulation(train, ai)
         if event % event_cycle == 0:
