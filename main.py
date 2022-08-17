@@ -89,11 +89,11 @@ def set_phase(phase, duration):
         traci.simulationStep()
 
 
-def do_stats(tot_length, tot_waiting_time):
+def do_stats(step_length, step_waiting_time):
     global total_length
     global total_waiting_time
-    total_length += tot_length
-    total_waiting_time += tot_waiting_time
+    total_length += step_length
+    total_waiting_time += step_waiting_time
 
 
 def print_summary(ep):
@@ -107,8 +107,8 @@ def print_summary(ep):
 
 
 def evaluate_brain(last_check_best_brain):
-    evaluate_function = abs(sum(brain.temp_reward_window) / float(len(brain.temp_reward_window)))
-    if evaluate_function < last_check_best_brain or last_check_best_brain == -1.0:
+    evaluate_function = sum(brain.temp_reward_window) / float(len(brain.temp_reward_window))
+    if evaluate_function > last_check_best_brain or last_check_best_brain == -1.0:
         brain.save()
         print("Saving")
         return evaluate_function
@@ -147,7 +147,7 @@ def run_simulation(train, ai):
 
 
 # contains TraCI control loop
-def run(epochs=35, train=True, ai=True, event_cycle=5):
+def run(epochs=30, train=True, ai=True, event_cycle=5):
     ep = 0
     check_best_brain = -1.0
     event = 0

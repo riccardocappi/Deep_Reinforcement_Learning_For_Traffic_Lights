@@ -13,7 +13,7 @@ class Network(nn.Module):
         super(Network, self).__init__()
         self.input_size = input_size
         self.n_actions = n_actions
-        self.hidden_layer_nodes = 40
+        self.hidden_layer_nodes = 80
         self.fc1 = nn.Linear(input_size, self.hidden_layer_nodes)
         self.fc2 = nn.Linear(self.hidden_layer_nodes, n_actions)
 
@@ -47,7 +47,7 @@ class Dqn():
         self.temp_reward_window = []
         self.model = Network(input_size, n_actions)
         self.memory = ReplayMemory(5000)
-        self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=0.0001)
         self.last_state = torch.Tensor(input_size).unsqueeze(0)
         self.last_action = 0
         # self.last_reward = 0
@@ -91,16 +91,16 @@ class Dqn():
         return sum(self.reward_window) / (len(self.reward_window) + 1.)
 
     def save(self):
-        torch.save({'state_dict_8': self.model.state_dict(),
-                    'optimizer_8': self.optimizer.state_dict(),
-                    }, 'last_brain_8.pth')
+        torch.save({'state_dict_2': self.model.state_dict(),
+                    'optimizer_2': self.optimizer.state_dict(),
+                    }, 'last_brain_2.pth')
 
     def load(self):
-        if os.path.isfile('last_brain_8.pth'):
+        if os.path.isfile('last_brain_1.pth'):
             print("=> loading checkpoint... ")
-            checkpoint = torch.load('last_brain_8.pth')
-            self.model.load_state_dict(checkpoint['state_dict_8'])
-            self.optimizer.load_state_dict(checkpoint['optimizer_8'])
+            checkpoint = torch.load('last_brain_1.pth')
+            self.model.load_state_dict(checkpoint['state_dict_1'])
+            self.optimizer.load_state_dict(checkpoint['optimizer_1'])
             print("done !")
         else:
             print("no checkpoint found...")
