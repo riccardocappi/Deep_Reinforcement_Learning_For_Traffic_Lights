@@ -50,7 +50,6 @@ class Dqn():
         self.optimizer = optim.Adam(self.model.parameters(), lr=0.0001)
         self.last_state = torch.Tensor(input_size).unsqueeze(0)
         self.last_action = 0
-        # self.last_reward = 0
         self.batch_size = 16
 
     def select_action(self, state):
@@ -83,24 +82,24 @@ class Dqn():
             self.learn(batch_state, batch_next_state, batch_reward, batch_action)
         self.last_action = action
         self.last_state = new_state
-        # self.last_reward = reward
         self.temp_reward_window.append(reward)
         return action
 
     def score(self):
         return sum(self.reward_window) / (len(self.reward_window) + 1.)
 
-    def save(self):
-        torch.save({'state_dict_2': self.model.state_dict(),
-                    'optimizer_2': self.optimizer.state_dict(),
-                    }, 'last_brain_2.pth')
+    def save(self, model_name):
+        torch.save({'state_dict_1': self.model.state_dict(),
+                    'optimizer_1': self.optimizer.state_dict(),
+                    }, model_name)
 
-    def load(self):
-        if os.path.isfile('last_brain_1.pth'):
+    def load(self, model_name):
+        if os.path.isfile(model_name):
             print("=> loading checkpoint... ")
-            checkpoint = torch.load('last_brain_1.pth')
+            checkpoint = torch.load(model_name)
             self.model.load_state_dict(checkpoint['state_dict_1'])
             self.optimizer.load_state_dict(checkpoint['optimizer_1'])
             print("done !")
         else:
             print("no checkpoint found...")
+
