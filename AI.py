@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
+import numpy as np
 
 
 class Network(nn.Module):
@@ -50,7 +51,7 @@ class Dqn():
         self.optimizer = optim.Adam(self.model.parameters(), lr=0.0001)
         self.last_state = torch.Tensor(input_size).unsqueeze(0)
         self.last_action = 0
-        self.batch_size = 16
+        self.batch_size = 32
 
     def select_action(self, state):
         with torch.no_grad():
@@ -86,7 +87,7 @@ class Dqn():
         return action
 
     def score(self):
-        return sum(self.reward_window) / (len(self.reward_window) + 1.)
+        return np.mean(self.reward_window)
 
     def save(self, model_name):
         torch.save({'state_dict_1': self.model.state_dict(),
