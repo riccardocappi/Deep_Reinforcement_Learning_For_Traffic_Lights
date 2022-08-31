@@ -48,7 +48,7 @@ class Dqn():
         self.temp_reward_window = []
         self.model = Network(input_size, n_actions)
         self.memory = ReplayMemory(5000)
-        self.optimizer = optim.Adam(self.model.parameters(), lr=0.0001)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
         self.last_state = torch.Tensor(input_size).unsqueeze(0)
         self.last_action = 0
         self.batch_size = 32
@@ -59,7 +59,7 @@ class Dqn():
         action = probs.multinomial(num_samples=1)
         return action.item()
 
-    def learn(self, batch_state, batch_next_state, batch_reward, batch_action):
+    def learn_from_batches(self, batch_state, batch_next_state, batch_reward, batch_action):
         outputs = self.model(batch_state).gather(1, batch_action.unsqueeze(1)).squeeze(1)
         next_outputs = self.model(batch_next_state).detach().max(1)[0]
         target = self.gamma * next_outputs + batch_reward
@@ -68,22 +68,25 @@ class Dqn():
         td_loss.backward(retain_graph=True)
         self.optimizer.step()
 
-    def update(self, reward, new_signal, train):
-        new_state = torch.Tensor(new_signal).float().unsqueeze(0)
-        action = self.select_action(new_state)
+    def learn(self, new_signal, reward, train):
         self.reward_window.append(reward)
         if len(self.reward_window) > 1000000:
             del self.reward_window[0]
         if not train:
-            return action
+            return
+        new_state = torch.Tensor(new_signal).float().unsqueeze(0)
         self.memory.push(
             (self.last_state, new_state, torch.LongTensor([int(self.last_action)]), torch.Tensor([reward])))
         if len(self.memory.memory) > self.batch_size:
             batch_state, batch_next_state, batch_action, batch_reward = self.memory.sample(self.batch_size)
-            self.learn(batch_state, batch_next_state, batch_reward, batch_action)
+            self.learn_from_batches(batch_state, batch_next_state, batch_reward, batch_action)
+        self.temp_reward_window.append(reward)
+
+    def update(self, new_signal):
+        new_state = torch.Tensor(new_signal).float().unsqueeze(0)
+        action = self.select_action(new_state)
         self.last_action = action
         self.last_state = new_state
-        self.temp_reward_window.append(reward)
         return action
 
     def score(self):

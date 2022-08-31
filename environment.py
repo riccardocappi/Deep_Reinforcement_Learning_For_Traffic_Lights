@@ -30,13 +30,15 @@ def stop_sim():
     sys.stdout.flush()
 
 
+FIRST_ACTION = 0
+
+
 class Environment:
 
     def __init__(self, run_with_gui, run_with_ai):
         self.sim_name = "./Simulation/osm_1.sumocfg"
         self.run_with_gui = run_with_gui
         self.run_with_ai = run_with_ai
-        # traci starts sumo as a subprocess and then this script connects and runs
         traci.start([checkBinary('sumo'), "-c", self.sim_name, "--no-step-log", "true", "-W",
                      "--tripinfo-output", "tripinfo.xml", "--duration-log.disable"])
         self.id_tfl = traci.trafficlight.getIDList()
@@ -54,11 +56,10 @@ class Environment:
         self.total_length = []
         self.total_waiting_time = []
 
-        self.last_phase_index = 0
+        self.last_phase_index = FIRST_ACTION
         self.last_jam_length = self.get_detectors_jam_length()
         self.min_duration = 10
         self.yellow_duration = 6
-        # traci.close()
 
     def get_phases(self):
         logic = traci.trafficlight.getAllProgramLogics(self.id_tfl[0])
@@ -109,15 +110,14 @@ class Environment:
         self.total_length += step_length
         self.total_waiting_time += step_waiting_time
 
-    def step(self, action, compute_stats=True):
+    def step(self, action):
         pred_phase = self.get_predicted_phase_state(action)
         yellow_phase = get_yellows(self.get_predicted_phase_state(self.last_phase_index), pred_phase)
         self.last_phase_index = action
         is_yellow = "y" in yellow_phase
         if is_yellow:
             self.set_phase(yellow_phase, self.yellow_duration)
-        if compute_stats:
-            self.do_stats(self.get_detectors_jam_length(), self.get_max_waiting_time_per_lane())
+        self.do_stats(self.get_detectors_jam_length(), self.get_max_waiting_time_per_lane())
         self.set_phase(pred_phase, self.min_duration if self.run_with_ai else self.phases_duration[pred_phase])
         jam_length = self.get_detectors_jam_length()
         waiting_time = self.get_max_waiting_time_per_lane()
@@ -129,19 +129,15 @@ class Environment:
         return signal, reward, not traci.simulation.getMinExpectedNumber() > 0
 
     def clear_stats(self):
-        self.total_waiting_time = []
-        self.total_length = []
+        self.total_waiting_time.clear()
+        self.total_length.clear()
 
     def restart(self):
         stop_sim()
         traci.start([checkBinary(self.run_with_gui), "-c", self.sim_name, "--no-step-log", "true", "-W",
                      "--tripinfo-output", "tripinfo.xml", "--duration-log.disable", '--waiting-time-memory', '10000'])
-        self.last_phase_index = 0
-        return self.step(0, False)
-
-
-
-
-
-
-
+        self.last_phase_index = FIRST_ACTION
+        j = self.get_detectors_jam_length()
+        w = self.get_max_waiting_time_per_lane()
+        self.last_jam_length = j
+        return [self.last_phase_index] + j + w

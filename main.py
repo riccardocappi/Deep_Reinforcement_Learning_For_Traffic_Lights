@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from AI import Dqn
 from optparse import OptionParser
 import numpy as np
-from environment import Environment, stop_sim
+from environment import Environment, stop_sim, FIRST_ACTION
 
 if 'SUMO_HOME' in os.environ:
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -25,7 +25,7 @@ def print_summary(ep):
 
 def evaluate_brain(last_check_best_brain):
     evaluate_function = sum(brain.temp_reward_window) / float(len(brain.temp_reward_window))
-    if evaluate_function > last_check_best_brain or last_check_best_brain == -1.0:
+    if evaluate_function > last_check_best_brain or last_check_best_brain == np.inf:
         brain.save(model_name)
         print("Saving")
         return evaluate_function
@@ -34,19 +34,19 @@ def evaluate_brain(last_check_best_brain):
 
 def run(epochs=30, train=False, ai=True, event_cycle=5):
     ep = 0
-    check_best_brain = -1.0
+    check_best_brain = np.inf
     event = 0
-    action = 0
     while ep < epochs:
         event += 1
-        state, reward, is_done = env.restart()
+        next_state = env.restart()
+        is_done = False
+        action = FIRST_ACTION - 1
         while not is_done:
+            action = brain.update(next_state) if ai else (action + 1) % 3
+            next_state, reward, is_done = env.step(action)
             if ai:
-                action = brain.update(reward, state, train)
+                brain.learn(next_state, reward, train)
                 scores.append(brain.score())
-            else:
-                action = (action + 1) % 3
-            state, reward, is_done = env.step(action)
         if event % event_cycle == 0:
             ep += 1
             print_summary(ep)
@@ -97,7 +97,7 @@ def get_options():
     parser.add_option(
         "--epochs",
         type="int",
-        default=30
+        default=40
     )
     options, args = parser.parse_args()
     return options
