@@ -68,18 +68,16 @@ class Dqn():
         td_loss.backward(retain_graph=True)
         self.optimizer.step()
 
-    def learn(self, new_signal, reward, train):
-        self.reward_window.append(reward)
-        if len(self.reward_window) > 1000000:
-            del self.reward_window[0]
-        if not train:
-            return
+    def learn(self, new_signal, reward):
         new_state = torch.Tensor(new_signal).float().unsqueeze(0)
         self.memory.push(
             (self.last_state, new_state, torch.LongTensor([int(self.last_action)]), torch.Tensor([reward])))
         if len(self.memory.memory) > self.batch_size:
             batch_state, batch_next_state, batch_action, batch_reward = self.memory.sample(self.batch_size)
             self.learn_from_batches(batch_state, batch_next_state, batch_reward, batch_action)
+        self.reward_window.append(reward)
+        if len(self.reward_window) > 1000000:
+            del self.reward_window[0]
         self.temp_reward_window.append(reward)
 
     def update(self, new_signal):
@@ -106,4 +104,3 @@ class Dqn():
             print("done !")
         else:
             print("no checkpoint found...")
-

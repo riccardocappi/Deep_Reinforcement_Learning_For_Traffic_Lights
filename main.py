@@ -13,13 +13,16 @@ else:
     sys.exit("please declare environment variable 'SUMO_HOME'")
 
 
-def print_summary(ep):
+def print_summary(ep, train):
+    max_len, max_wait, avg_len, avg_wait, avg_co2 = env.get_summary(save_stats=train)
     print("An epoch passed", ep)
-    print("Max jam length", max(env.total_length))
-    print("Max waiting time", max(env.total_waiting_time))
-    print("Average jam length", np.mean(env.total_length))
-    print("Average waiting time", np.mean(env.total_waiting_time))
-    print("Memory size", len(brain.memory.memory))
+    print("Max jam length", max_len)
+    print("Max waiting time", max_wait)
+    print("Average jam length", avg_len)
+    print("Average waiting time", avg_wait)
+    print("Average CO2 emissions", avg_co2)
+    if train:
+        print("Average epoch reward", np.mean(brain.temp_reward_window))
     print()
 
 
@@ -30,6 +33,16 @@ def evaluate_brain(last_check_best_brain):
         print("Saving")
         return evaluate_function
     return last_check_best_brain
+
+
+def plots():
+    if scores and env.avg_tot_len and env.avg_tot_wait:
+        plt.plot(scores)
+        plt.show()
+        plt.plot(env.avg_tot_len, marker='o')
+        plt.show()
+        plt.plot(env.avg_tot_wait, marker='o')
+        plt.show()
 
 
 def run(epochs=30, train=False, ai=True, event_cycle=5):
@@ -44,19 +57,17 @@ def run(epochs=30, train=False, ai=True, event_cycle=5):
         while not is_done:
             action = brain.update(next_state) if ai else (action + 1) % 3
             next_state, reward, is_done = env.step(action)
-            if ai:
-                brain.learn(next_state, reward, train)
+            if train and ai:
+                brain.learn(next_state, reward)
                 scores.append(brain.score())
         if event % event_cycle == 0:
             ep += 1
-            print_summary(ep)
+            print_summary(ep, train)
             if train and ai:
                 check_best_brain = evaluate_brain(check_best_brain)
                 brain.temp_reward_window.clear()
-            env.clear_stats()
     stop_sim()
-    plt.plot(scores)
-    plt.show()
+    plots()
     print("Training concluded")
 
 

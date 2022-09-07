@@ -1,6 +1,7 @@
 import traci
 from sumolib import checkBinary  # Checks for the binary in environ vars
 import sys
+import numpy as np
 
 
 def get_actions_dict(phases):
@@ -53,8 +54,11 @@ class Environment:
             "406769345_0": ("-406769344#0_0", "-406769344#2_0"),
             "406769345_1": ("-406769344#0_1", "-406769344#2_1")
         }
-        self.total_length = []
-        self.total_waiting_time = []
+        self.epoch_total_length = []
+        self.epoch_total_waiting_time = []
+        self.avg_tot_wait = []
+        self.avg_tot_len = []
+        self.co2_emissions = []
 
         self.last_phase_index = FIRST_ACTION
         self.last_jam_length = self.get_detectors_jam_length()
@@ -82,13 +86,17 @@ class Environment:
         return self.get_lane_and_detectors_values(lane, lambda x: traci.lane.getLastStepVehicleIDs(x))
 
     def get_lane_and_detectors_values(self, id, function):
+        res = function(id)
         if id in self.multilane:
-            res = function(id)
             for m in self.multilane[id]:
                 res += function(m)
-            return res
-        else:
-            return function(id)
+        return res
+
+    def get_total_co2_emissions(self):
+        sum_co2 = 0
+        for lane in self.controlled_lanes_id:
+            sum_co2 += self.get_lane_and_detectors_values(lane, lambda x: traci.lane.getCO2Emission(x))
+        return sum_co2
 
     def get_max_waiting_time_per_lane(self):
         waiting_time_list = []
@@ -106,9 +114,10 @@ class Environment:
         for _ in range(int(duration)):
             traci.simulationStep()
 
-    def do_stats(self, step_length, step_waiting_time):
-        self.total_length += step_length
-        self.total_waiting_time += step_waiting_time
+    def do_stats(self):
+        self.epoch_total_length.append(self.get_detectors_jam_length(),)
+        self.epoch_total_waiting_time.append(self.get_max_waiting_time_per_lane())
+        self.co2_emissions.append(self.get_total_co2_emissions())
 
     def step(self, action):
         pred_phase = self.get_predicted_phase_state(action)
@@ -117,7 +126,7 @@ class Environment:
         is_yellow = "y" in yellow_phase
         if is_yellow:
             self.set_phase(yellow_phase, self.yellow_duration)
-        self.do_stats(self.get_detectors_jam_length(), self.get_max_waiting_time_per_lane())
+        self.do_stats()
         self.set_phase(pred_phase, self.min_duration if self.run_with_ai else self.phases_duration[pred_phase])
         jam_length = self.get_detectors_jam_length()
         waiting_time = self.get_max_waiting_time_per_lane()
@@ -129,8 +138,9 @@ class Environment:
         return signal, reward, not traci.simulation.getMinExpectedNumber() > 0
 
     def clear_stats(self):
-        self.total_waiting_time.clear()
-        self.total_length.clear()
+        self.epoch_total_waiting_time.clear()
+        self.epoch_total_length.clear()
+        self.co2_emissions.clear()
 
     def restart(self):
         stop_sim()
@@ -141,3 +151,21 @@ class Environment:
         w = self.get_max_waiting_time_per_lane()
         self.last_jam_length = j
         return [self.last_phase_index] + j + w
+
+    def get_summary(self, save_stats=True):
+        avg_wait = np.mean(self.epoch_total_waiting_time)
+        avg_len = np.mean(self.epoch_total_length)
+        avg_co2 = np.mean(self.co2_emissions)
+        max_len = np.max(self.epoch_total_length)
+        max_wait = np.max(self.epoch_total_waiting_time)
+        if save_stats:
+            self.avg_tot_wait.append(avg_wait)
+            self.avg_tot_len.append(avg_len)
+        self.clear_stats()
+        return max_len, max_wait, avg_len, avg_wait, avg_co2
+
+    def get_epoch_jam_len_per_lane(self):
+        return tuple(zip(*self.epoch_total_length))
+
+    def get_epoch_waiting_time_per_lane(self):
+        return tuple(zip(*self.epoch_total_waiting_time))
