@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2022-09-07 14:27:36 by Eclipse SUMO sumo Version 1.12.0
+<!-- generated on 2022-09-15 13:05:59 by Eclipse SUMO sumo Version 1.12.0
 <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
 
     <input>
@@ -24,13 +24,14 @@
     </report>
 
     <traci_server>
-        <remote-port value="51535"/>
+        <remote-port value="50309"/>
     </traci_server>
 
 </configuration>
 -->
 
 <detector xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/det_e2_file.xsd">
-   <interval begin="0.00" end="300.00" id="e2_4" sampledSeconds="1174.27" nVehEntered="75" nVehLeft="71" nVehSeen="75" meanSpeed="4.39" meanTimeLoss="10.71" meanOccupancy="18.90" maxOccupancy="37.24" meanMaxJamLengthInVehicles="1.41" meanMaxJamLengthInMeters="9.26" maxJamLengthInVehicles="6" maxJamLengthInMeters="42.59" jamLengthInVehiclesSum="422" jamLengthInMetersSum="2777.07" meanHaltingDuration="11.29" maxHaltingDuration="29.00" haltingDurationSum="463.00" meanIntervalHaltingDuration="11.29" maxIntervalHaltingDuration="29.00" intervalHaltingDurationSum="463.00" startedHalts="41.00" meanVehicleNumber="3.99" maxVehicleNumber="8" />
-   <interval begin="300.00" end="600.00" id="e2_4" sampledSeconds="874.46" nVehEntered="51" nVehLeft="55" nVehSeen="55" meanSpeed="4.19" meanTimeLoss="11.09" meanOccupancy="13.99" maxOccupancy="35.00" meanMaxJamLengthInVehicles="1.11" meanMaxJamLengthInMeters="7.44" maxJamLengthInVehicles="6" maxJamLengthInMeters="42.72" jamLengthInVehiclesSum="334" jamLengthInMetersSum="2232.08" meanHaltingDuration="12.26" maxHaltingDuration="29.00" haltingDurationSum="380.00" meanIntervalHaltingDuration="11.71" maxIntervalHaltingDuration="29.00" intervalHaltingDurationSum="363.00" startedHalts="29.00" meanVehicleNumber="2.98" maxVehicleNumber="8" />
+   <interval begin="0.00" end="300.00" id="e2_4" sampledSeconds="1247.35" nVehEntered="75" nVehLeft="73" nVehSeen="75" meanSpeed="4.15" meanTimeLoss="11.68" meanOccupancy="20.10" maxOccupancy="50.00" meanMaxJamLengthInVehicles="1.70" meanMaxJamLengthInMeters="11.69" maxJamLengthInVehicles="8" maxJamLengthInMeters="57.54" jamLengthInVehiclesSum="509" jamLengthInMetersSum="3508.24" meanHaltingDuration="14.05" maxHaltingDuration="42.00" haltingDurationSum="548.00" meanIntervalHaltingDuration="14.05" maxIntervalHaltingDuration="42.00" intervalHaltingDurationSum="548.00" startedHalts="39.00" meanVehicleNumber="4.24" maxVehicleNumber="10" />
+   <interval begin="300.00" end="600.00" id="e2_4" sampledSeconds="910.20" nVehEntered="51" nVehLeft="53" nVehSeen="53" meanSpeed="3.99" meanTimeLoss="12.22" meanOccupancy="14.69" maxOccupancy="45.00" meanMaxJamLengthInVehicles="1.29" meanMaxJamLengthInMeters="8.87" maxJamLengthInVehicles="8" maxJamLengthInMeters="57.68" jamLengthInVehiclesSum="386" jamLengthInMetersSum="2661.21" meanHaltingDuration="17.78" maxHaltingDuration="43.00" haltingDurationSum="409.00" meanIntervalHaltingDuration="17.78" maxIntervalHaltingDuration="43.00" intervalHaltingDurationSum="409.00" startedHalts="23.00" meanVehicleNumber="3.09" maxVehicleNumber="10" />
+   <interval begin="600.00" end="657.00" id="e2_4" sampledSeconds="0.00" nVehEntered="0" nVehLeft="0" nVehSeen="0" meanSpeed="-1.00" meanTimeLoss="-1.00" meanOccupancy="0.00" maxOccupancy="0.00" meanMaxJamLengthInVehicles="0.00" meanMaxJamLengthInMeters="0.00" maxJamLengthInVehicles="0" maxJamLengthInMeters="0.00" jamLengthInVehiclesSum="0" jamLengthInMetersSum="0.00" meanHaltingDuration="0.00" maxHaltingDuration="0.00" haltingDurationSum="0.00" meanIntervalHaltingDuration="0.00" maxIntervalHaltingDuration="0.00" intervalHaltingDurationSum="0.00" startedHalts="0.00" meanVehicleNumber="0.00" maxVehicleNumber="0" />
 </detector>

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from AI import Dqn
 from optparse import OptionParser
 import numpy as np
-from environment import Environment, stop_sim, FIRST_ACTION
+from environment import Environment, stop_sim, FIRST_ACTION, STATE_SIZE
 
 if 'SUMO_HOME' in os.environ:
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -55,11 +55,16 @@ def run(epochs=30, train=False, ai=True, event_cycle=5):
         is_done = False
         action = FIRST_ACTION - 1
         while not is_done:
-            action = brain.update(next_state) if ai else (action + 1) % 3
-            next_state, reward, is_done = env.step(action)
-            if train and ai:
-                brain.learn(next_state, reward)
-                scores.append(brain.score())
+            if ai:
+                action = brain.update(next_state)
+                next_state, reward, is_done = env.step(action)
+                if train:
+                    brain.learn(next_state, reward)
+                    scores.append(brain.score())
+            else:
+                action = (action+1) % 3
+                is_done = env.set_action(action)
+
         if event % event_cycle == 0:
             ep += 1
             print_summary(ep, train)
@@ -117,7 +122,7 @@ def get_options():
 # main entry point
 if __name__ == "__main__":
     arguments = get_options()
-    brain = Dqn(13, 3, 0.9)
+    brain = Dqn(STATE_SIZE, 3, 0.9)
     model_name = arguments.model_name
     run_with_gui = 'sumo-gui' if arguments.gui else 'sumo'
     env = Environment(run_with_gui, arguments.ai)

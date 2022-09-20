@@ -32,6 +32,7 @@ def stop_sim():
 
 
 FIRST_ACTION = 0
+STATE_SIZE = 13
 
 
 class Environment:
@@ -61,7 +62,7 @@ class Environment:
         self.co2_emissions = []
 
         self.last_phase_index = FIRST_ACTION
-        self.last_jam_length = self.get_detectors_jam_length()
+        self.last_jam_length_sum = sum(self.get_detectors_jam_length())
         self.min_duration = 10
         self.yellow_duration = 6
 
@@ -119,23 +120,28 @@ class Environment:
         self.epoch_total_waiting_time.append(self.get_max_waiting_time_per_lane())
         self.co2_emissions.append(self.get_total_co2_emissions())
 
-    def step(self, action):
+    def set_action(self, action):
         pred_phase = self.get_predicted_phase_state(action)
-        yellow_phase = get_yellows(self.get_predicted_phase_state(self.last_phase_index), pred_phase)
-        self.last_phase_index = action
-        is_yellow = "y" in yellow_phase
-        if is_yellow:
-            self.set_phase(yellow_phase, self.yellow_duration)
+        if self.last_phase_index != action:
+            yellow_phase = get_yellows(self.get_predicted_phase_state(self.last_phase_index), pred_phase)
+            self.last_phase_index = action
+            is_yellow = "y" in yellow_phase
+            if is_yellow:
+                self.set_phase(yellow_phase, self.yellow_duration)
         self.do_stats()
         self.set_phase(pred_phase, self.min_duration if self.run_with_ai else self.phases_duration[pred_phase])
+        return not traci.simulation.getMinExpectedNumber() > 0
+
+    def step(self, action):
+        is_done = self.set_action(action)
         jam_length = self.get_detectors_jam_length()
         waiting_time = self.get_max_waiting_time_per_lane()
         signal = [self.last_phase_index] + jam_length + waiting_time
         sum_waiting_time = sum(waiting_time)
         sum_jam_length = sum(jam_length)
-        reward = (sum(self.last_jam_length) - sum_jam_length) + (-0.3 * sum_waiting_time)
-        self.last_jam_length = jam_length
-        return signal, reward, not traci.simulation.getMinExpectedNumber() > 0
+        reward = (self.last_jam_length_sum - sum_jam_length) + (-0.3 * sum_waiting_time)
+        self.last_jam_length_sum = sum_jam_length
+        return signal, reward, is_done
 
     def clear_stats(self):
         self.epoch_total_waiting_time.clear()
@@ -149,7 +155,7 @@ class Environment:
         self.last_phase_index = FIRST_ACTION
         j = self.get_detectors_jam_length()
         w = self.get_max_waiting_time_per_lane()
-        self.last_jam_length = j
+        self.last_jam_length_sum = sum(j)
         return [self.last_phase_index] + j + w
 
     def get_summary(self, save_stats=True):

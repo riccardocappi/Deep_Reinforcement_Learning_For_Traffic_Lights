@@ -93,12 +93,12 @@ class Dqn():
     def save(self, model_name):
         torch.save({'state_dict_1': self.model.state_dict(),
                     'optimizer_1': self.optimizer.state_dict(),
-                    }, model_name)
+                    }, 'Trained Models/'+model_name)
 
     def load(self, model_name):
-        if os.path.isfile(model_name):
+        if os.path.isfile('Trained Models/'+model_name):
             print("=> loading checkpoint... ")
-            checkpoint = torch.load(model_name)
+            checkpoint = torch.load('Trained Models/' + model_name)
             self.model.load_state_dict(checkpoint['state_dict_1'])
             self.optimizer.load_state_dict(checkpoint['optimizer_1'])
             print("done !")
