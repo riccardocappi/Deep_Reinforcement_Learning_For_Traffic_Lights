@@ -37,30 +37,34 @@ class ReplayMemory(object):
 
     def sample(self, batch_size):
         samples = zip(*random.sample(self.memory, batch_size))
-        return map(lambda x: Variable(torch.cat(x, 0)), samples)
+        return map(lambda x: Variable(torch.stack(x, 0)), samples)
 
 
 class Dqn():
 
-    def __init__(self, input_size, n_actions, gamma):
+    def __init__(self, gamma, model):
         self.gamma = gamma
         self.reward_window = []
         self.temp_reward_window = []
-        self.model = Network(input_size, n_actions)
+        self.model = model
         self.memory = ReplayMemory(5000)
         self.optimizer = optim.Adam(self.model.parameters(), lr=0.001)
-        self.last_state = torch.Tensor(input_size).unsqueeze(0)
+        self.last_state = None
         self.last_action = 0
         self.batch_size = 32
 
     def select_action(self, state):
+        state = torch.unsqueeze(state, dim=0)
         with torch.no_grad():
             probs = F.softmax(self.model(Variable(state))*75, dim=1)
         action = probs.multinomial(num_samples=1)
         return action.item()
 
     def learn_from_batches(self, batch_state, batch_next_state, batch_reward, batch_action):
-        outputs = self.model(batch_state).gather(1, batch_action.unsqueeze(1)).squeeze(1)
+        batch_reward = batch_reward.view(self.batch_size, )
+        # batch_action = batch_action.view(self.batch_size,)
+
+        outputs = self.model(batch_state).gather(1, batch_action).squeeze(1)
         next_outputs = self.model(batch_next_state).detach().max(1)[0]
         target = self.gamma * next_outputs + batch_reward
         td_loss = F.smooth_l1_loss(outputs, target)
@@ -69,7 +73,7 @@ class Dqn():
         self.optimizer.step()
 
     def learn(self, new_signal, reward):
-        new_state = torch.Tensor(new_signal).float().unsqueeze(0)
+        new_state = torch.from_numpy(new_signal).float()
         self.memory.push(
             (self.last_state, new_state, torch.LongTensor([int(self.last_action)]), torch.Tensor([reward])))
         if len(self.memory.memory) > self.batch_size:
@@ -81,7 +85,7 @@ class Dqn():
         self.temp_reward_window.append(reward)
 
     def update(self, new_signal):
-        new_state = torch.Tensor(new_signal).float().unsqueeze(0)
+        new_state = torch.from_numpy(new_signal).float()
         action = self.select_action(new_state)
         self.last_action = action
         self.last_state = new_state

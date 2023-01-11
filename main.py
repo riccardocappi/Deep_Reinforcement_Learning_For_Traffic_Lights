@@ -2,9 +2,11 @@ import os
 import sys
 import matplotlib.pyplot as plt
 from AI import Dqn
-from optparse import OptionParser
+import argparse
 import numpy as np
-from environment import Environment, stop_sim, FIRST_ACTION, STATE_SIZE
+from environment import Environment, stop_sim, FIRST_ACTION, STATE_SIZE, MATRIX_STATE_SHAPE
+from AI import Network
+from CNN_Model import CNN
 
 if 'SUMO_HOME' in os.environ:
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -45,19 +47,19 @@ def plots():
         plt.show()
 
 
-def run(epochs=30, train=False, ai=True, event_cycle=5):
+def run(brain, epochs=30, train=False, ai=True, event_cycle=5, state_as_matrix=False):
     ep = 0
     check_best_brain = np.inf
     event = 0
     while ep < epochs:
         event += 1
-        next_state = env.restart()
+        next_state = env.restart(state_as_matrix=state_as_matrix)
         is_done = False
         action = FIRST_ACTION - 1
         while not is_done:
             if ai:
                 action = brain.update(next_state)
-                next_state, reward, is_done = env.step(action)
+                next_state, reward, is_done = env.step(action, state_as_matrix=state_as_matrix)
                 if train:
                     brain.learn(next_state, reward)
                     scores.append(brain.score())
@@ -71,61 +73,66 @@ def run(epochs=30, train=False, ai=True, event_cycle=5):
             if train and ai:
                 check_best_brain = evaluate_brain(check_best_brain)
                 brain.temp_reward_window.clear()
+
     stop_sim()
     plots()
     print("Training concluded")
 
 
 def get_options():
-    parser = OptionParser()
-    parser.add_option(
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
         "--model_name",
         default='brain.pth',
-        help="Load saved model",
-        type="string"
-    )
-    parser.add_option(
+        help="Load saved model")
+    parser.add_argument(
         "--gui",
         default=False,
         action="store_true",
         help="Run using UI"
     )
-    parser.add_option(
+    parser.add_argument(
         "--train",
         default=False,
         action="store_true"
     )
-    parser.add_option(
+    parser.add_argument(
         "--event",
-        type="int",
-        default=5
+        default=5,
+        type=int
     )
-    parser.add_option(
+    parser.add_argument(
         "--ai",
         default=True,
         action="store_true"
     )
-    parser.add_option(
+    parser.add_argument(
         "--not_ai",
         dest="ai",
         action="store_false"
     )
-    parser.add_option(
+    parser.add_argument(
         "--epochs",
-        type="int",
-        default=40
+        default=40,
+        type=int
     )
-    options, args = parser.parse_args()
-    return options
+    args = parser.parse_args()
+    return args
 
 
 # main entry point
 if __name__ == "__main__":
     arguments = get_options()
-    brain = Dqn(STATE_SIZE, 3, 0.9)
+    model = Network(STATE_SIZE, 3)
+    brain = Dqn(0.9, model)
+
+    # model = CNN(MATRIX_STATE_SHAPE, 3)
+    # brain = Dqn(0.9, model)
+
     model_name = arguments.model_name
     run_with_gui = 'sumo-gui' if arguments.gui else 'sumo'
+    state_as_matrix = False
     env = Environment(run_with_gui, arguments.ai)
     brain.load(model_name)
     scores = []
-    run(epochs=arguments.epochs, train=arguments.train, ai=arguments.ai, event_cycle=arguments.event)
+    run(brain, epochs=arguments.epochs, train=arguments.train, ai=arguments.ai, event_cycle=arguments.event, state_as_matrix=state_as_matrix)

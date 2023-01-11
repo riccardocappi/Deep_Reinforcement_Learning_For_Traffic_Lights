@@ -2,6 +2,7 @@ import traci
 from sumolib import checkBinary  # Checks for the binary in environ vars
 import sys
 import numpy as np
+# import cv2
 
 
 def get_actions_dict(phases):
@@ -33,6 +34,7 @@ def stop_sim():
 
 FIRST_ACTION = 0
 STATE_SIZE = 13
+MATRIX_STATE_SHAPE = (1, 90, 150)
 
 
 class Environment:
@@ -65,6 +67,12 @@ class Environment:
         self.last_jam_length_sum = sum(self.get_detectors_jam_length())
         self.min_duration = 10
         self.yellow_duration = 6
+
+        net_boundary = traci.simulation.getNetBoundary()
+        self.state_matrix = np.zeros(shape=MATRIX_STATE_SHAPE)
+        self.reshape_factor_x = MATRIX_STATE_SHAPE[1] / net_boundary[1][0]
+        self.reshape_factor_y = MATRIX_STATE_SHAPE[2] / net_boundary[1][1]
+        print(self.state_matrix.shape)
 
     def get_phases(self):
         logic = traci.trafficlight.getAllProgramLogics(self.id_tfl[0])
@@ -132,11 +140,15 @@ class Environment:
         self.set_phase(pred_phase, self.min_duration if self.run_with_ai else self.phases_duration[pred_phase])
         return not traci.simulation.getMinExpectedNumber() > 0
 
-    def step(self, action):
+    def step(self, action, state_as_matrix=False):
         is_done = self.set_action(action)
         jam_length = self.get_detectors_jam_length()
         waiting_time = self.get_max_waiting_time_per_lane()
-        signal = [self.last_phase_index] + jam_length + waiting_time
+        if state_as_matrix:
+            self.get_state_matrix()
+            signal = self.state_matrix
+        else:
+            signal = np.array([self.last_phase_index] + jam_length + waiting_time)
         sum_waiting_time = sum(waiting_time)
         sum_jam_length = sum(jam_length)
         reward = (self.last_jam_length_sum - sum_jam_length) + (-0.3 * sum_waiting_time)
@@ -148,15 +160,20 @@ class Environment:
         self.epoch_total_length.clear()
         self.co2_emissions.clear()
 
-    def restart(self):
+    def restart(self, state_as_matrix=False):
         stop_sim()
         traci.start([checkBinary(self.run_with_gui), "-c", self.sim_name, "--no-step-log", "true", "-W",
                      "--tripinfo-output", "tripinfo.xml", "--duration-log.disable", '--waiting-time-memory', '10000'])
         self.last_phase_index = FIRST_ACTION
         j = self.get_detectors_jam_length()
-        w = self.get_max_waiting_time_per_lane()
         self.last_jam_length_sum = sum(j)
-        return [self.last_phase_index] + j + w
+        if state_as_matrix:
+            self.get_state_matrix()
+            signal = self.state_matrix
+        else:
+            w = self.get_max_waiting_time_per_lane()
+            signal = np.array([self.last_phase_index] + j + w)
+        return signal
 
     def get_summary(self, save_stats=True):
         avg_wait = np.mean(self.epoch_total_waiting_time)
@@ -169,6 +186,15 @@ class Environment:
             self.avg_tot_len.append(avg_len)
         self.clear_stats()
         return max_len, max_wait, avg_len, avg_wait, avg_co2
+
+    def get_state_matrix(self):
+        self.state_matrix[0][...][...] = 0
+        for lane in self.controlled_lanes_id:
+            last_veh_list = self.get_veh_id_per_lane(lane)
+            for v in last_veh_list:
+                veh_position = traci.vehicle.getPosition(v)
+                self.state_matrix[0][int(veh_position[0] * self.reshape_factor_x)][int(veh_position[1]*self.reshape_factor_y)] = 255
+        # cv2.imwrite('./state_matrix.png', self.state_matrix[0])
 
     def get_epoch_jam_len_per_lane(self):
         return tuple(zip(*self.epoch_total_length))
