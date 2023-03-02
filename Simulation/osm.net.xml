@@ -225,12 +225,12 @@
     </edge>
 
     <tlLogic id="cluster_2032805687_2032805899_2032806537_247106356_4226890906_4226890910_4226890917_4226890924_4226890926_4226890934_6317221097_6317221102_921818999_921819024" type="actuated" programID="0" offset="0">
-        <phase duration="33" state="rrrrrGGGGgGGrrr"/>
-        <phase duration="6"  state="rrrrryyyyyGGrrr"/>
-        <phase duration="20" state="GGrrrrrrrrGGGGG"/>
-        <phase duration="6"  state="GGrrrrrrrryyyyy"/>
-        <phase duration="33" state="GGGGrrrrrrrrrrr"/>
-        <phase duration="6"  state="yyyyrrrrrrrrrrr"/>
+        <phase duration="25" state="rrrrrGGGGgGGrrr"/>
+        <phase duration="5"  state="rrrrryyyyyGGrrr"/>
+        <phase duration="25" state="GGrrrrrrrrGGGGG"/>
+        <phase duration="5"  state="GGrrrrrrrryyyyy"/>
+        <phase duration="25" state="GGGGrrrrrrrrrrr"/>
+        <phase duration="5"  state="yyyyrrrrrrrrrrr"/>
     </tlLogic>
 
     <junction id="1253821571" type="priority" x="145.47" y="435.76" incLanes="192748767#0_0" intLanes=":1253821571_0_0" shape="146.96,436.34 144.02,435.08 143.94,435.29">

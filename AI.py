@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
-import numpy as np
+# import numpy as np
 
 
 class Network(nn.Module):
@@ -44,7 +44,6 @@ class Dqn():
 
     def __init__(self, gamma, model):
         self.gamma = gamma
-        self.reward_window = []
         self.temp_reward_window = []
         self.model = model
         self.memory = ReplayMemory(5000)
@@ -73,26 +72,20 @@ class Dqn():
         self.optimizer.step()
 
     def learn(self, new_signal, reward):
-        new_state = torch.from_numpy(new_signal).float()
+        new_state = torch.tensor(new_signal).float()
         self.memory.push(
             (self.last_state, new_state, torch.LongTensor([int(self.last_action)]), torch.Tensor([reward])))
         if len(self.memory.memory) > self.batch_size:
             batch_state, batch_next_state, batch_action, batch_reward = self.memory.sample(self.batch_size)
             self.learn_from_batches(batch_state, batch_next_state, batch_reward, batch_action)
-        self.reward_window.append(reward)
-        if len(self.reward_window) > 1000000:
-            del self.reward_window[0]
         self.temp_reward_window.append(reward)
 
     def update(self, new_signal):
-        new_state = torch.from_numpy(new_signal).float()
+        new_state = torch.tensor(new_signal).float()
         action = self.select_action(new_state)
         self.last_action = action
         self.last_state = new_state
         return action
-
-    def score(self):
-        return np.mean(self.reward_window)
 
     def save(self, model_name):
         torch.save({'state_dict_1': self.model.state_dict(),
@@ -102,7 +95,7 @@ class Dqn():
     def load(self, model_name):
         if os.path.isfile('Trained Models/'+model_name):
             print("=> loading checkpoint... ")
-            checkpoint = torch.load('Trained Models/' + model_name)
+            checkpoint = torch.load('Trained Models/' + model_name, map_location=torch.device('cpu'))
             self.model.load_state_dict(checkpoint['state_dict_1'])
             self.optimizer.load_state_dict(checkpoint['optimizer_1'])
             print("done !")
