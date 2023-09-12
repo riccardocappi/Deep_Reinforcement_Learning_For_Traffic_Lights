@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 from AI import Dqn
 import argparse
 import numpy as np
-from environment import Environment, stop_sim, FIRST_ACTION, STATE_SIZE, MATRIX_STATE_SHAPE
-from AI import Network
-from CNN_Model import CNN
+from environment import Environment, stop_sim, FIRST_ACTION, STATE_SIZE
+from MLP import Network
+from CNN import CNN
 
 if 'SUMO_HOME' in os.environ:
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -156,9 +156,11 @@ def get_options():
 if __name__ == "__main__":
     arguments = get_options()
     model_type = arguments.model_type
+    run_with_gui = 'sumo-gui' if arguments.gui else 'sumo'
+    env = Environment(run_with_gui, arguments.ai)
 
     if model_type == 'cnn':
-        model = CNN(MATRIX_STATE_SHAPE, 3)
+        model = CNN(env.frames_stack.shape, 3)
     elif model_type == 'mlp':
         model = Network(STATE_SIZE, 3)
     else:
@@ -166,12 +168,13 @@ if __name__ == "__main__":
 
     state_as_matrix = model_type == 'cnn'
 
+    if not arguments.train:
+        model.eval()
+
     brain = Dqn(0.9, model)
     model_name = arguments.model_name
-    run_with_gui = 'sumo-gui' if arguments.gui else 'sumo'
-    save_model = arguments.save
 
-    env = Environment(run_with_gui, arguments.ai)
+    save_model = arguments.save
     brain.load(model_name)
     scores, avg_tot_len, avg_tot_wait = \
         run(env, brain, model_name, epochs=arguments.epochs, train=arguments.train, ai=arguments.ai,

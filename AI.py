@@ -1,27 +1,8 @@
 import random
 import os
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.autograd import Variable
-# import numpy as np
-
-
-class Network(nn.Module):
-
-    def __init__(self, input_size, n_actions):
-        super(Network, self).__init__()
-        self.input_size = input_size
-        self.n_actions = n_actions
-        self.hidden_layer_nodes = 80
-        self.fc1 = nn.Linear(input_size, self.hidden_layer_nodes)
-        self.fc2 = nn.Linear(self.hidden_layer_nodes, n_actions)
-
-    def forward(self, state):
-        x = F.relu(self.fc1(state))
-        actions = self.fc2(x)
-        return actions
 
 
 class ReplayMemory(object):
@@ -37,7 +18,7 @@ class ReplayMemory(object):
 
     def sample(self, batch_size):
         samples = zip(*random.sample(self.memory, batch_size))
-        return map(lambda x: Variable(torch.stack(x, 0)), samples)
+        return map(lambda x: torch.stack(x, 0), samples)
 
 
 class Dqn():
@@ -55,7 +36,7 @@ class Dqn():
     def select_action(self, state):
         state = torch.unsqueeze(state, dim=0)
         with torch.no_grad():
-            probs = F.softmax(self.model(Variable(state))*75, dim=1)
+            probs = F.softmax(self.model(state)*75, dim=1)
         action = probs.multinomial(num_samples=1)
         return action.item()
 

@@ -36,8 +36,7 @@ def stop_sim():
 
 FIRST_ACTION = 0
 STATE_SIZE = 13
-FRAMES_TO_SAVE = 3
-MATRIX_STATE_SHAPE = (FRAMES_TO_SAVE, 120, 232)
+FRAMES_TO_SAVE = 2
 
 
 class Environment:
@@ -68,10 +67,10 @@ class Environment:
         self.min_duration = 10
         self.yellow_duration = 5
 
-        net_boundary = traci.simulation.getNetBoundary()
-        self.frames_stack = np.zeros(shape=MATRIX_STATE_SHAPE)
-        self.reshape_factor_x = MATRIX_STATE_SHAPE[1] / net_boundary[1][0]
-        self.reshape_factor_y = MATRIX_STATE_SHAPE[2] / net_boundary[1][1]
+        self.max_length_lane = int(
+            self.get_lane_length(max(self.controlled_lanes_id, key=lambda l: self.get_lane_length(l))))
+
+        self.frames_stack = np.zeros((FRAMES_TO_SAVE + 1, len(self.controlled_lanes_id), self.max_length_lane + 1))
 
     def get_phases(self):
         logic = traci.trafficlight.getAllProgramLogics(self.id_tfl[0])
@@ -80,7 +79,7 @@ class Environment:
 
     def get_predicted_phase_state(self, index):
         if index not in self.actions:
-            return ''
+            raise 'not valid action'
         return self.actions[index]
 
     def get_detectors_jam_length(self):
@@ -92,6 +91,9 @@ class Environment:
 
     def get_veh_id_per_lane(self, lane):
         return self.get_lane_and_detectors_values(lane, lambda x: traci.lane.getLastStepVehicleIDs(x))
+
+    def get_lane_length(self, lane):
+        return self.get_lane_and_detectors_values(lane, lambda x: traci.lane.getLength(x))
 
     def get_lane_and_detectors_values(self, id, function):
         res = function(id)
@@ -158,12 +160,12 @@ class Environment:
     def restart(self, state_as_matrix=False):
         stop_sim()
         traci.start([checkBinary(self.run_with_gui), "-c", self.sim_name, "--no-step-log", "true", "-W",
-                     "--tripinfo-output", "tripinfo.xml", "--duration-log.disable", '--waiting-time-memory', '10000'])
+                     "--tripinfo-output", "tripinfo.xml", "--duration-log.disable", '--waiting-time-memory', '2000'])
         self.last_phase_index = FIRST_ACTION
         j = self.get_detectors_jam_length()
         self.last_jam_length_sum = sum(j)
 
-        for i in range(len(self.frames_stack)):
+        for i in range(FRAMES_TO_SAVE):
             self.get_state_matrix(i)
 
         if state_as_matrix:
@@ -180,14 +182,33 @@ class Environment:
         max_wait = np.max(self.epoch_total_waiting_time)
         return max_len, max_wait, avg_len, avg_wait
 
+    def get_norm_pos(self, veh_pos, lane_length):
+        if veh_pos == 0:
+            return 0
+        norm_pos = veh_pos / lane_length
+        distance_from_t_l1 = lane_length - veh_pos
+        distance_from_t_maxl = self.max_length_lane - distance_from_t_l1
+        x = (distance_from_t_maxl / self.max_length_lane) * (1 / norm_pos)
+        return x * norm_pos
+
     def get_state_matrix(self, i):
         self.frames_stack[i][...][...] = 0
-        for lane in self.controlled_lanes_id:
+        if i == FRAMES_TO_SAVE - 1:
+            self.frames_stack[i + 1][...][...] = 0
+        for j, lane in enumerate(self.controlled_lanes_id):
             last_veh_list = self.get_veh_id_per_lane(lane)
+            lane_length = self.get_lane_length(lane)
             for v in last_veh_list:
-                veh_position = traci.vehicle.getPosition(v)
-                self.frames_stack[i][int(veh_position[0] * self.reshape_factor_x)][
-                    int(veh_position[1] * self.reshape_factor_y)] = 255
+                veh_lane_pos = int(traci.vehicle.getDistance(v))
+                norm_pos = self.get_norm_pos(veh_lane_pos, int(lane_length))
+                self.frames_stack[i][j][veh_lane_pos] = norm_pos
+                if i == FRAMES_TO_SAVE - 1:
+                    cumul_wait_time = traci.vehicle.getAccumulatedWaitingTime(v)
+                    norm_wait_time = 0.0
+                    if cumul_wait_time != 0:
+                        # norm_wait_time = np.log(cumul_wait_time) / np.log(2000)
+                        norm_wait_time = cumul_wait_time / 2000
+                    self.frames_stack[i+1][j][veh_lane_pos] = norm_wait_time
         # cv2.imwrite('./state_matrix_'+ str(i) + '.png', self.frames_stack[i])
 
     def get_epoch_jam_len_per_lane(self):
