@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from AI import Dqn
 import argparse
 import numpy as np
-from environment import Environment, stop_sim, FIRST_ACTION, STATE_SIZE
+from environment import Environment, stop_sim, FIRST_ACTION
 from MLP import Network
 from CNN import CNN
 
@@ -35,6 +35,25 @@ def evaluate_brain(model_name, brain, last_check_best_brain):
     return last_check_best_brain
 
 
+def run_ai(env, brain, state_as_matrix, train):
+    next_state = env.restart(state_as_matrix=state_as_matrix)
+    is_done = False
+    while not is_done:
+        action = brain.update(next_state)
+        next_state, reward, is_done = env.step(action, state_as_matrix=state_as_matrix)
+        if train:
+            brain.learn(next_state, reward)
+
+
+def run_no_ai(env):
+    _ = env.restart(state_as_matrix=False)
+    is_done = False
+    action = FIRST_ACTION - 1
+    while not is_done:
+        action = (action + 1) % 3
+        is_done = env.set_action(action, ai=False)
+
+
 def run(env, brain, model_name, epochs=30, train=False, ai=True, event_cycle=5,
         state_as_matrix=False, save_model=True):
     ep = 0
@@ -46,19 +65,10 @@ def run(env, brain, model_name, epochs=30, train=False, ai=True, event_cycle=5,
 
     while ep < epochs:
         event += 1
-        next_state = env.restart(state_as_matrix=state_as_matrix)
-        is_done = False
-        action = FIRST_ACTION - 1
-        while not is_done:
-            if ai:
-                action = brain.update(next_state)
-                next_state, reward, is_done = env.step(action, state_as_matrix=state_as_matrix)
-                if train:
-                    brain.learn(next_state, reward)
-            else:
-                action = (action + 1) % 3
-                is_done = env.set_action(action)
-
+        if ai:
+            run_ai(env, brain, state_as_matrix, train)
+        else:
+            run_no_ai(env)
         if event % event_cycle == 0:
             ep += 1
             avg_epoch_rewards = 0
@@ -157,12 +167,18 @@ if __name__ == "__main__":
     arguments = get_options()
     model_type = arguments.model_type
     run_with_gui = 'sumo-gui' if arguments.gui else 'sumo'
-    env = Environment(run_with_gui, arguments.ai)
+    concat_lane = {
+            "via_inn_fin": ("via_inn_start", "via_inn_int"),
+            "via_inn_fin_1": ("via_inn_start_1", "via_inn_int_1"),
+            "406769345_0": ("-406769344#0_0", "-406769344#2_0"),
+            "406769345_1": ("-406769344#0_1", "-406769344#2_1")
+    }
+    env = Environment(run_with_gui, concat_lane)
 
     if model_type == 'cnn':
         model = CNN(env.frames_stack.shape, 3)
     elif model_type == 'mlp':
-        model = Network(STATE_SIZE, 3)
+        model = Network(env.state_size, 3)
     else:
         raise Exception('Model type not supported!')
 
