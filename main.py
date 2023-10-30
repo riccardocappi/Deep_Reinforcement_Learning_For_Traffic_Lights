@@ -1,93 +1,18 @@
 import os
 import sys
 import matplotlib.pyplot as plt
-from AI import Dqn
 import argparse
-import numpy as np
-from environment import Environment, stop_sim, FIRST_ACTION
-from MLP import Network
-from CNN import CNN
+from src.Experiments.AIPolicy import AIPolicy
+from src.Experiments.HeuristicsPolicy import HeuristicsPolicy
+from src.Experiments.Simulation import RunModes
+from src.Experiments.StaticPolicy import StaticPolicy
+
 
 if 'SUMO_HOME' in os.environ:
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
     sys.path.append(tools)
 else:
     sys.exit("please declare environment variable 'SUMO_HOME'")
-
-
-def print_summary(max_len, max_wait, avg_len, avg_wait, avg_rewards, ep, train):
-    print("An epoch passed", ep)
-    print("Max jam length", max_len)
-    print("Max waiting time", max_wait)
-    print("Average jam length", avg_len)
-    print("Average waiting time", avg_wait)
-    if train:
-        print("Average epoch reward", avg_rewards)
-    print()
-
-
-def evaluate_brain(model_name, brain, last_check_best_brain):
-    evaluate_function = np.mean(brain.temp_reward_window)
-    if evaluate_function > last_check_best_brain or last_check_best_brain == np.inf:
-        brain.save(model_name)
-        print("Saving")
-        return evaluate_function
-    return last_check_best_brain
-
-
-def run_ai(env, brain, state_as_matrix, train):
-    next_state = env.restart(state_as_matrix=state_as_matrix)
-    is_done = False
-    while not is_done:
-        action = brain.update(next_state)
-        next_state, reward, is_done = env.step(action, state_as_matrix=state_as_matrix)
-        if train:
-            brain.learn(next_state, reward)
-
-
-def run_no_ai(env):
-    _ = env.restart(state_as_matrix=False)
-    is_done = False
-    action = FIRST_ACTION - 1
-    while not is_done:
-        action = (action + 1) % 3
-        is_done = env.set_action(action, ai=False)
-
-
-def run(env, brain, model_name, epochs=30, train=False, ai=True, event_cycle=5,
-        state_as_matrix=False, save_model=True):
-    ep = 0
-    check_best_brain = np.inf
-    event = 0
-    scores = []
-    avg_tot_len = []
-    avg_tot_wait = []
-
-    while ep < epochs:
-        event += 1
-        if ai:
-            run_ai(env, brain, state_as_matrix, train)
-        else:
-            run_no_ai(env)
-        if event % event_cycle == 0:
-            ep += 1
-            avg_epoch_rewards = 0
-            if train and ai:
-                avg_epoch_rewards = np.mean(brain.temp_reward_window)
-                scores.append(avg_epoch_rewards)
-                if save_model:
-                    check_best_brain = evaluate_brain(model_name, brain, check_best_brain)
-                brain.temp_reward_window.clear()
-
-            max_len, max_wait, avg_len, avg_wait = env.get_summary()
-            print_summary(max_len, max_wait, avg_len, avg_wait, avg_epoch_rewards, ep, train)
-            avg_tot_len.append(avg_len)
-            avg_tot_wait.append(avg_wait)
-            env.clear_stats()
-
-    stop_sim()
-    print("Training concluded")
-    return scores, avg_tot_len, avg_tot_wait
 
 
 def plots(scores, avg_tot_len, avg_tot_wait):
@@ -132,16 +57,6 @@ def get_options():
         type=int
     )
     parser.add_argument(
-        "--ai",
-        default=True,
-        action="store_true"
-    )
-    parser.add_argument(
-        "--not_ai",
-        dest="ai",
-        action="store_false"
-    )
-    parser.add_argument(
         "--epochs",
         default=40,
         type=int
@@ -166,35 +81,20 @@ def get_options():
 if __name__ == "__main__":
     arguments = get_options()
     model_type = arguments.model_type
-    run_with_gui = 'sumo-gui' if arguments.gui else 'sumo'
-    concat_lane = {
-            "via_inn_fin": ("via_inn_start", "via_inn_int"),
-            "via_inn_fin_1": ("via_inn_start_1", "via_inn_int_1"),
-            "406769345_0": ("-406769344#0_0", "-406769344#2_0"),
-            "406769345_1": ("-406769344#0_1", "-406769344#2_1")
-    }
-    env = Environment(run_with_gui, concat_lane)
-
     if model_type == 'cnn':
-        model = CNN(env.frames_stack.shape, 3)
+        experiment = AIPolicy(arguments, RunModes.CNN, 0.9)
     elif model_type == 'mlp':
-        model = Network(env.state_size, 3)
+        experiment = AIPolicy(arguments, RunModes.MLP, 0.9)
+    elif model_type == 'static':
+        experiment = StaticPolicy(arguments)
+    elif model_type == 'mwf':
+        experiment = HeuristicsPolicy(arguments, RunModes.MWF)
+    elif model_type == 'lqf':
+        experiment = HeuristicsPolicy(arguments, RunModes.LQF)
     else:
         raise Exception('Model type not supported!')
 
-    state_as_matrix = model_type == 'cnn'
-
-    if not arguments.train:
-        model.eval()
-
-    brain = Dqn(0.9, model)
-    model_name = arguments.model_name
-
-    save_model = arguments.save
-    brain.load(model_name)
-    scores, avg_tot_len, avg_tot_wait = \
-        run(env, brain, model_name, epochs=arguments.epochs, train=arguments.train, ai=arguments.ai,
-            event_cycle=arguments.event, state_as_matrix=state_as_matrix, save_model=save_model)
+    scores, avg_tot_len, avg_tot_wait = experiment.run()
 
     if arguments.train:
         plots(scores, avg_tot_len, avg_tot_wait)
