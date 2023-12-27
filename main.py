@@ -25,7 +25,7 @@ def plots(scores, avg_tot_len, avg_tot_wait):
 
     axes[1].plot(avg_tot_len, color='b', linewidth=0.5)
     axes[1].title.set_text('Avg. Queue length')
-    axes[1].set_ylabel('Average Queue length (vehicles)')
+    axes[1].set_ylabel('Average Queue length (meters)')
     axes[1].set_xlabel('Epochs')
 
     axes[2].plot(avg_tot_wait, color='orange', linewidth=0.5)

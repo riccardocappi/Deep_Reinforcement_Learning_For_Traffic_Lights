@@ -15,8 +15,8 @@ class CNN(nn.Module):
         self.conv_layer2 = nn.Sequential(
             nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(1,4), stride=(1, 2)),
             nn.LeakyReLU(),
-            nn.MaxPool2d(kernel_size = (1,2)),
-            nn.Dropout(0.2)
+            nn.MaxPool2d(kernel_size = (1,2))
+            # nn.Dropout(0.2)
         )
 
         self.fc1 = nn.Sequential(
