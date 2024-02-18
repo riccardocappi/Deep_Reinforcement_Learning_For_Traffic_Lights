@@ -2,7 +2,6 @@ import traci
 from sumolib import checkBinary  # Checks for the binary in environ vars
 import sys
 import numpy as np
-# import cv2
 
 
 def get_actions_space(phases):
@@ -60,10 +59,10 @@ class Environment:
         self.min_duration = 10
         self.yellow_duration = 5
 
-        self.max_length_lane = int(
+        max_length_lane = int(
             self.get_lane_length(max(self.controlled_lanes_id, key=lambda l: self.get_lane_length(l))))
 
-        self.frames_stack = np.zeros((FRAMES_TO_SAVE + 1, len(self.controlled_lanes_id), self.max_length_lane + 1))
+        self.frames_stack = np.zeros((FRAMES_TO_SAVE + 1, len(self.controlled_lanes_id), max_length_lane + 1))
         self.lane_phase_matrix = self.get_lane_phase_matrix()
 
     def get_phases(self):
@@ -189,28 +188,19 @@ class Environment:
         max_wait = np.max(self.epoch_total_waiting_time)
         return max_len, max_wait, avg_len, avg_wait
 
-    def get_norm_pos(self, veh_pos, lane_length):
-        distance_from_t_l1 = lane_length - veh_pos
-        distance_from_t_maxl = self.max_length_lane - distance_from_t_l1
-        x = (distance_from_t_maxl / self.max_length_lane)
-        return x
-
     def get_state_matrix(self, i):
-        self.frames_stack[i][:][:] = 0
+        self.frames_stack[i][:][:] = 0.0
         if i == FRAMES_TO_SAVE - 1:
-          self.frames_stack[i + 1][:][:] = 0
+            self.frames_stack[i + 1][:][:] = 0.0
         for j, lane in enumerate(self.controlled_lanes_id):
             last_veh_list = self.get_veh_id_per_lane(lane)
-            lane_length = self.get_lane_length(lane)
             for v in last_veh_list:
                 veh_lane_pos = int(traci.vehicle.getDistance(v))
-                norm_pos = self.get_norm_pos(veh_lane_pos, int(lane_length))
-                self.frames_stack[i][j][veh_lane_pos] = norm_pos
+                self.frames_stack[i][j][veh_lane_pos] = 1.0
                 if i == FRAMES_TO_SAVE - 1:
                     cumul_wait_time = traci.vehicle.getAccumulatedWaitingTime(v)
-                    norm_wait_time = cumul_wait_time / 2000
+                    norm_wait_time = cumul_wait_time / 2000.0
                     self.frames_stack[i+1][j][veh_lane_pos] = norm_wait_time
-        # cv2.imwrite('./state_matrix_'+ str(i) + '.png', self.frames_stack[i])
 
     def get_epoch_jam_len_per_lane(self):
         return tuple(zip(*self.epoch_total_length))

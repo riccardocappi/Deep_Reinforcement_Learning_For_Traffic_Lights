@@ -3,8 +3,11 @@ import numpy as np
 from src.AI import Dqn
 from src.Architectures.CNN import CNN
 from src.Architectures.MLP import Network
-from src.Experiments.Policy import Policy
+from src.Experiments.Simulation import Simulation
+from src.environment import stop_sim
 from src.Experiments.Simulation import RunModes
+
+# from torchsummary import summary
 
 
 def load_model(gamma, model_name, model):
@@ -13,7 +16,7 @@ def load_model(gamma, model_name, model):
     return brain
 
 
-class AIPolicy(Policy):
+class AIPolicy(Simulation):
     def __init__(self, args, mode, gamma):
         super().__init__(args)
         self.mode = mode
@@ -22,18 +25,28 @@ class AIPolicy(Policy):
         self.check_best_brain = np.inf
 
     # override
-    def run_simulation(self, env):
-        next_state = env.restart(state_as_matrix=self.state_as_matrix)
-        is_done = False
-        while not is_done:
-            action = self.brain.update(next_state)
-            next_state, reward, is_done = env.step(action, state_as_matrix=self.state_as_matrix)
-            if self.train:
-                self.brain.learn(next_state, reward)
+    def run(self):
+        ep = 0
+        event = 0
+        env = self.create_env()
+        while ep < self.epochs:
+            event += 1
+            next_state = env.restart(state_as_matrix=self.state_as_matrix)
+            is_done = False
+            while not is_done:
+                action = self.brain.update(next_state)
+                next_state, reward, is_done = env.step(action, state_as_matrix=self.state_as_matrix)
+                if self.train:
+                    self.brain.learn(next_state, reward)
+            if event % self.event_cycle == 0:
+                ep += 1
+                self.reset_event(env, ep)
+        stop_sim()
+        return self.scores, self.avg_tot_len, self.avg_tot_wait
 
     # override
-    def on_create_env(self):
-        env = self.create_env()
+    def create_env(self):
+        env = super().create_env()
         model = CNN(env.frames_stack.shape, 3) if self.mode == RunModes.CNN else Network(env.state_size, 3)
         if not self.train:
             model.eval()
@@ -41,8 +54,8 @@ class AIPolicy(Policy):
         return env
 
     # override
-    def on_event_reset(self, env, ep):
-        self.reset_event(env, ep)
+    def reset_event(self, env, ep):
+        super().reset_event(env, ep)
         if self.train:
             avg_epoch_rewards = np.mean(self.brain.temp_reward_window)
             self.scores.append(avg_epoch_rewards)
