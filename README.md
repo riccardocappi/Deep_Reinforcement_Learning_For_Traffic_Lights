@@ -1,5 +1,5 @@
 # Deep Convolutional Q-Learning for Traffic Lights Optimization
-This project aims at implementing a **Reinforcement Learning** agent for the **optimization of traffic lights timing** at an intersection.
+This project aims at implementing a **Reinforcement Learning** agent for the **optimization of traffic lights timing** at an intersection. Check out also the [substack article] (https://riccardocappi.substack.com/p/deep-convolutional-q-learning-for?r=32mz3o&utm_campaign=post&utm_medium=web&triedRedirect=true) and the pdf report in the repo.
 ## Environment
 The simulation environment is implemented using [SUMO](https://sumo.dlr.de/docs/Tools/Sumolib.html), an open source traffic simulator  that allows to model real world traffic behaviours. 
 The agent interacts with the environment using the Python APIs provided by [TRACI](https://sumo.dlr.de/docs/TraCI.html). This library contains a set of useful methods to get the relevant 
