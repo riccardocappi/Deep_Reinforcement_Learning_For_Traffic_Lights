@@ -4,14 +4,16 @@ from src.environment import FIRST_ACTION
 
 
 class StaticPolicy(Simulation):
-    def __init__(self, args):
+    def __init__(self, args, sim_path="./Simulation/osm_1.sumocfg", concat=True):
         super().__init__(args)
+        self.sim_path = sim_path
+        self.concat = concat
 
     # override
     def run(self):
         ep = 0
         event = 0
-        env = self.create_env()
+        env = self.create_env(self.sim_path, self.concat)
         while ep < self.epochs:
             event += 1
             _ = env.restart(state_as_matrix=False)

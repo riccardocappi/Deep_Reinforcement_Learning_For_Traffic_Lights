@@ -16,13 +16,13 @@
     <route id="r_8" edges="193714501#0 192748767#0"/>
 	<vType id="type1" length="5"/>
     <!-- Vehicles, persons and containers (sorted by depart) -->
-    <flow id="f_0" begin="0.00" route="r_0" end="500.00" vehsPerHour="350" type="type1"/>
-    <flow id="f_1" begin="0.00" route="r_1" end="500.00" vehsPerHour="350" type="type1"/>
-    <flow id="f_2" begin="0.00" route="r_2" end="500.00" vehsPerHour="350" type="type1"/>
-    <flow id="f_3" begin="0.00" route="r_3" end="500.00" vehsPerHour="350" type="type1"/>
-    <flow id="f_4" begin="0.00" route="r_4" end="500.00" vehsPerHour="350" type="type1"/>
-    <flow id="f_5" begin="0.00" route="r_5" end="500.00" vehsPerHour="350" type="type1"/>
-    <flow id="f_6" begin="0.00" route="r_6" end="500.00" vehsPerHour="350" type="type1"/>
-    <flow id="f_7" begin="0.00" route="r_7" end="500.00" vehsPerHour="350" type="type1"/>
-    <flow id="f_8" begin="0.00" route="r_8" end="500.00" vehsPerHour="350" type="type1"/>
+    <flow id="f_0" begin="0.00" route="r_0" end="500.00" vehsPerHour="450" type="type1"/>
+    <flow id="f_1" begin="0.00" route="r_1" end="500.00" vehsPerHour="450" type="type1"/>
+    <flow id="f_2" begin="0.00" route="r_2" end="500.00" vehsPerHour="450" type="type1"/>
+    <flow id="f_3" begin="0.00" route="r_3" end="500.00" vehsPerHour="450" type="type1"/>
+    <flow id="f_4" begin="0.00" route="r_4" end="500.00" vehsPerHour="450" type="type1"/>
+    <flow id="f_5" begin="0.00" route="r_5" end="500.00" vehsPerHour="450" type="type1"/>
+    <flow id="f_6" begin="0.00" route="r_6" end="500.00" vehsPerHour="450" type="type1"/>
+    <flow id="f_7" begin="0.00" route="r_7" end="500.00" vehsPerHour="450" type="type1"/>
+    <flow id="f_8" begin="0.00" route="r_8" end="500.00" vehsPerHour="450" type="type1"/>
 </routes>

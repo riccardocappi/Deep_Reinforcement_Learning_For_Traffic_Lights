@@ -10,25 +10,27 @@ from src.Experiments.Simulation import RunModes
 # from torchsummary import summary
 
 
-def load_model(gamma, model_name, model):
-    brain = Dqn(gamma, model)
+def load_model(gamma, model_name, model, target_model):
+    brain = Dqn(gamma, model, target_model)
     brain.load(model_name)
     return brain
 
 
 class AIPolicy(Simulation):
-    def __init__(self, args, mode, gamma):
+    def __init__(self, args, mode, gamma, sim_path="./Simulation/osm_1.sumocfg", concat=True):
         super().__init__(args)
         self.mode = mode
         self.gamma = gamma
         self.brain = None
         self.check_best_brain = np.inf
+        self.sim_path = sim_path
+        self.concat = concat
 
     # override
     def run(self):
         ep = 0
         event = 0
-        env = self.create_env()
+        env = self.create_env(self.sim_path, self.concat)
         while ep < self.epochs:
             event += 1
             next_state = env.restart(state_as_matrix=self.state_as_matrix)
@@ -37,7 +39,7 @@ class AIPolicy(Simulation):
                 action = self.brain.update(next_state)
                 next_state, reward, is_done = env.step(action, state_as_matrix=self.state_as_matrix)
                 if self.train:
-                    self.brain.learn(next_state, reward)
+                    self.brain.learn(next_state, reward, is_done)
             if event % self.event_cycle == 0:
                 ep += 1
                 self.reset_event(env, ep)
@@ -45,12 +47,15 @@ class AIPolicy(Simulation):
         return self.scores, self.avg_tot_len, self.avg_tot_wait
 
     # override
-    def create_env(self):
-        env = super().create_env()
-        model = CNN(env.frames_stack.shape, 3) if self.mode == RunModes.CNN else Network(env.state_size, 3)
+    def create_env(self, sim_path="./Simulation/osm_1.sumocfg", concat=True):
+        env = super().create_env(sim_path, concat)
+        n_actions = len(env.actions)
+        model = CNN(env.frames_stack.shape, n_actions) if self.mode == RunModes.CNN else Network(env.state_size, 3)
+        target_model = CNN(env.frames_stack.shape, n_actions) if self.mode == RunModes.CNN else Network(env.state_size, 3)
         if not self.train:
             model.eval()
-        self.brain = load_model(self.gamma, self.model_name, model)
+        self.brain = load_model(self.gamma, self.model_name, model,
+                                target_model)
         return env
 
     # override

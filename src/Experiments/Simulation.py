@@ -27,14 +27,16 @@ class Simulation(ABC):
         self.avg_tot_len = []
         self.avg_tot_wait = []
 
-    def create_env(self):
-        concat_lane = {
-            "via_inn_fin": ("via_inn_start", "via_inn_int"),
-            "via_inn_fin_1": ("via_inn_start_1", "via_inn_int_1"),
-            "406769345_0": ("-406769344#0_0", "-406769344#2_0"),
-            "406769345_1": ("-406769344#0_1", "-406769344#2_1")
-        }
-        env = Environment(self.run_with_gui, concat_lane)
+    def create_env(self, sim_path="./Simulation/osm_1.sumocfg", concat=True):
+        concat_lane = None
+        if concat:
+            concat_lane = {
+                "via_inn_fin": ("via_inn_start", "via_inn_int"),
+                "via_inn_fin_1": ("via_inn_start_1", "via_inn_int_1"),
+                "406769345_0": ("-406769344#0_0", "-406769344#2_0"),
+                "406769345_1": ("-406769344#0_1", "-406769344#2_1")
+            }
+        env = Environment(self.run_with_gui, concat_lane, sim_path)
         return env
 
     def reset_event(self, env, ep):

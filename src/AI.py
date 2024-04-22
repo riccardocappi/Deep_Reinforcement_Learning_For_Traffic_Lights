@@ -23,7 +23,7 @@ class ReplayMemory(object):
 
 class Dqn:
 
-    def __init__(self, gamma, model):
+    def __init__(self, gamma, model, target_model):
         self.gamma = gamma
         self.temp_reward_window = []
         self.model = model
@@ -32,6 +32,8 @@ class Dqn:
         self.last_state = None
         self.last_action = 0
         self.batch_size = 32
+        self.target_model = target_model
+        self.TAU = 1e-3
 
     def select_action(self, state):
         state = torch.unsqueeze(state, dim=0)
@@ -40,25 +42,41 @@ class Dqn:
         action = probs.multinomial(num_samples=1)
         return action.item()
 
-    def learn_from_batches(self, batch_state, batch_next_state, batch_reward, batch_action):
-        batch_reward = batch_reward.view(self.batch_size, )
-        # batch_action = batch_action.view(self.batch_size,)
+    def learn_from_batches(self, batch_state, batch_next_state, batch_reward,
+                           batch_action, batch_is_done):
+        batch_reward = batch_reward.view(self.batch_size,)
+        batch_is_done = batch_is_done.view(self.batch_size, )
 
         outputs = self.model(batch_state).gather(1, batch_action).squeeze(1)
-        next_outputs = self.model(batch_next_state).detach().max(1)[0]
-        target = self.gamma * next_outputs + batch_reward
+        with torch.no_grad():
+            next_outputs = self.target_model(batch_next_state).detach().max(1)[0]
+        target = ((self.gamma * next_outputs) * (1 - batch_is_done)) + batch_reward
         td_loss = F.smooth_l1_loss(outputs, target)
         self.optimizer.zero_grad()
         td_loss.backward(retain_graph=True)
         self.optimizer.step()
+        # Updates target model
+        self.soft_update(self.model, self.target_model)
 
-    def learn(self, new_signal, reward):
+    def soft_update(self, model, target_model):
+        for target_param, param in zip(target_model.parameters(),
+                                           model.parameters()):
+            target_param.data.copy_(self.TAU*param.data + (1-self.TAU)*target_param.data)
+
+    def learn(self, new_signal, reward, is_done):
         new_state = torch.tensor(new_signal).float()
         self.memory.push(
-            (self.last_state, new_state, torch.LongTensor([int(self.last_action)]), torch.Tensor([reward])))
+            (self.last_state, new_state,
+             torch.LongTensor([int(self.last_action)]),
+             torch.Tensor([reward]),
+             torch.Tensor([int(is_done)])))
+
         if len(self.memory.memory) > self.batch_size:
-            batch_state, batch_next_state, batch_action, batch_reward = self.memory.sample(self.batch_size)
-            self.learn_from_batches(batch_state, batch_next_state, batch_reward, batch_action)
+            batch_state, batch_next_state, batch_action, batch_reward, batch_is_done = self.memory.sample(self.batch_size)
+            self.learn_from_batches(batch_state, batch_next_state,
+                                    batch_reward,
+                                    batch_action,
+                                    batch_is_done)
         self.temp_reward_window.append(reward)
 
     def update(self, new_signal):
@@ -69,15 +87,17 @@ class Dqn:
         return action
 
     def save(self, model_name):
-        torch.save({'state_dict_1': self.model.state_dict(),
+        torch.save({'state_dict_policy': self.model.state_dict(),
+                    'state_dict_target': self.target_model.state_dict(),
                     'optimizer_1': self.optimizer.state_dict(),
-                    }, 'Trained Models/'+model_name)
+                    }, './'+model_name)
 
     def load(self, model_name):
-        if os.path.isfile('Trained Models/'+model_name):
+        if os.path.isfile('./'+model_name):
             print("=> loading checkpoint... ")
-            checkpoint = torch.load('Trained Models/' + model_name, map_location=torch.device('cpu'))
-            self.model.load_state_dict(checkpoint['state_dict_1'])
+            checkpoint = torch.load('./' + model_name)
+            self.model.load_state_dict(checkpoint['state_dict_policy'])
+            self.target_model.load_state_dict(checkpoint['state_dict_target'])
             self.optimizer.load_state_dict(checkpoint['optimizer_1'])
             print("done !")
         else:

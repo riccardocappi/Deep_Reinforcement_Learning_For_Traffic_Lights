@@ -33,10 +33,10 @@ FRAMES_TO_SAVE = 2
 
 class Environment:
 
-    def __init__(self, run_with_gui, concat_lane=None):
+    def __init__(self, run_with_gui, concat_lane=None, sim_path="./Simulation/osm_1.sumocfg"):
         if concat_lane is None:
             concat_lane = {}
-        self.sim_name = "./Simulation/osm_1.sumocfg"
+        self.sim_name = sim_path
         self.run_with_gui = run_with_gui
         traci.start([checkBinary('sumo'), "-c", self.sim_name, "--no-step-log", "true", "-W",
                      "--tripinfo-output", "tripinfo.xml", "--duration-log.disable"])
@@ -85,7 +85,10 @@ class Environment:
         lanes = [traci.lanearea.getLaneID(detID) for detID in ids]
         assert len(lanes) == len(set(lanes))  # Must be only one detector per lane
         lane_id_mapping = dict((k, v) for k, v in zip(lanes, ids))
-        controlled_detectors = [lane_id_mapping[lane] for lane in self.controlled_lanes_id]
+        controlled_detectors = []
+        for lane in self.controlled_lanes_id:
+            if lane in lane_id_mapping:
+                controlled_detectors.append(lane_id_mapping[lane])
         return controlled_detectors
 
     def get_detectors_jam_length(self):
