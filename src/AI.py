@@ -93,9 +93,9 @@ class Dqn:
                     }, './'+model_name)
 
     def load(self, model_name):
-        if os.path.isfile('./'+model_name):
+        if os.path.isfile('./Trained Models/'+model_name):
             print("=> loading checkpoint... ")
-            checkpoint = torch.load('./' + model_name)
+            checkpoint = torch.load('./Trained Models/' + model_name, map_location=torch.device('cpu'))
             self.model.load_state_dict(checkpoint['state_dict_policy'])
             self.target_model.load_state_dict(checkpoint['state_dict_target'])
             self.optimizer.load_state_dict(checkpoint['optimizer_1'])
