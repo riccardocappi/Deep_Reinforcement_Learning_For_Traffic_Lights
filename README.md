@@ -34,4 +34,4 @@ python main.py --model_name=prova.pth --model_type=cnn --epochs=10 --event=3 --t
 ```
 
 ## Colab
-You can find a colab notebook of the project here: https://colab.research.google.com/drive/14iIqbKndhTaaRsR4mTz5rc_WgdnkhRPQ?usp=sharing](https://colab.research.google.com/drive/1QC4F4s0zEoVX8Fic5CNvGqN9gEZ1Grdd?usp=sharing)
+You can find a colab notebook of the project here: https://colab.research.google.com/drive/1QC4F4s0zEoVX8Fic5CNvGqN9gEZ1Grdd?usp=sharing
