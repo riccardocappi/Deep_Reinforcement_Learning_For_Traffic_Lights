@@ -8,7 +8,7 @@ def get_actions_space(phases):
     phases_mapping = []
     for p in phases:
         if "y" not in p.state:
-            phases_mapping.append([p.state, p.duration])
+            phases_mapping.append(p.state)
     return np.array(phases_mapping)
 
 
@@ -64,6 +64,7 @@ class Environment:
 
         self.frames_stack = np.zeros((FRAMES_TO_SAVE + 1, len(self.controlled_lanes_id), max_length_lane + 1))
         self.lane_phase_matrix = self.get_lane_phase_matrix()
+        self.global_sim_step = 0
 
     def get_phases(self):
         logic = traci.trafficlight.getAllProgramLogics(self.tl)
@@ -73,12 +74,7 @@ class Environment:
     def get_predicted_phase_state(self, index):
         if index >= len(self.actions):
             raise 'not valid action'
-        return self.actions[index][0]
-
-    def get_phase_duration(self, action):
-        if action >= len(self.actions):
-            raise 'not valid action'
-        return int(float(self.actions[action][1]))
+        return self.actions[index]
 
     def get_controlled_detectors(self):
         ids = traci.lanearea.getIDList()
@@ -127,6 +123,9 @@ class Environment:
         traci.trafficlight.setRedYellowGreenState(self.tl, phase)
         for i in range(int(duration)):
             traci.simulationStep()
+            self.global_sim_step += 1
+            if self.global_sim_step % 10 == 0:
+                self.do_stats()
             if save_frames and (i >= duration - FRAMES_TO_SAVE):
                 self.get_state_matrix(j)
                 j += 1
@@ -135,7 +134,7 @@ class Environment:
         self.epoch_total_length.append(self.get_detectors_jam_length())
         self.epoch_total_waiting_time.append(self.get_max_waiting_time_per_lane())
 
-    def set_action(self, action, state_as_matrix=False, ai=True):
+    def set_action(self, action, state_as_matrix=False):
         pred_phase = self.get_predicted_phase_state(action)
         if self.last_phase_index != action:
             yellow_phase = get_yellows(self.get_predicted_phase_state(self.last_phase_index), pred_phase)
@@ -143,13 +142,11 @@ class Environment:
             is_yellow = "y" in yellow_phase
             if is_yellow:
                 self.set_phase(yellow_phase, self.yellow_duration)
-        self.do_stats()
-        self.set_phase(pred_phase, self.min_duration if ai else self.get_phase_duration(action),
-                       save_frames=state_as_matrix)
+        self.set_phase(pred_phase, self.min_duration, save_frames=state_as_matrix)
         return not traci.simulation.getMinExpectedNumber() > 0
 
-    def step(self, action, state_as_matrix=False, ai=True):
-        is_done = self.set_action(action, state_as_matrix, ai)
+    def step(self, action, state_as_matrix=False):
+        is_done = self.set_action(action, state_as_matrix)
         jam_length = self.get_detectors_jam_length()
         waiting_time = self.get_max_waiting_time_per_lane()
         if state_as_matrix:
@@ -173,6 +170,7 @@ class Environment:
         self.last_phase_index = FIRST_ACTION
         j = self.get_detectors_jam_length()
         self.last_jam_length_sum = sum(j)
+        self.global_sim_step = 0
 
         for i in range(FRAMES_TO_SAVE):
             self.get_state_matrix(i)
@@ -226,7 +224,7 @@ class Environment:
         for lane, link_index in links:
             i = lane_mapping[lane]
             for j, state in enumerate(self.actions):
-                if state[0][link_index].lower() == 'g':
+                if state[link_index].lower() == 'g':
                     lane_phase_matrix[i][j] = 1
         return lane_phase_matrix
 

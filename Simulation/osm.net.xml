@@ -225,11 +225,21 @@
     </edge>
 
     <tlLogic id="cluster_2032805687_2032805899_2032806537_247106356_4226890906_4226890910_4226890917_4226890924_4226890926_4226890934_6317221097_6317221102_921818999_921819024" type="actuated" programID="0" offset="0">
-        <phase duration="25" state="rrrrrGGGGgGGrrr"/>
+        <param key="max-gap" value="3.0"/>
+        <param key="detector-gap" value="2.0"/>
+        <param key="passing-time" value="2.0"/>
+        <param key="vTypes" value=""/>
+        <param key="show-detectors" value="false"/>
+        <param key="file" value="NUL"/>
+        <param key="freq" value="300"/>
+        <param key="jam-threshold" value="-1"/>
+        <param key="detector-length" value="0"/>
+
+        <phase duration = "25" minDur="10" maxDur="50" state="rrrrrGGGGgGGrrr"/>
         <phase duration="5"  state="rrrrryyyyyGGrrr"/>
-        <phase duration="25" state="GGrrrrrrrrGGGGG"/>
+        <phase duration = "25" minDur="10" maxDur="50" state="GGrrrrrrrrGGGGG"/>
         <phase duration="5"  state="GGrrrrrrrryyyyy"/>
-        <phase duration="25" state="GGGGrrrrrrrrrrr"/>
+        <phase duration = "25" minDur="10" maxDur="50" state="GGGGrrrrrrrrrrr"/>
         <phase duration="5"  state="yyyyrrrrrrrrrrr"/>
     </tlLogic>
 

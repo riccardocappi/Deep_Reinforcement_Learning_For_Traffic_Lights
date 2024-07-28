@@ -26,7 +26,7 @@ class HeuristicsPolicy(Simulation):
                 else:
                     signal = np.array(env.get_detectors_jam_length())
                 action = np.argmax(signal.dot(env.lane_phase_matrix))
-                is_done = env.set_action(action, ai=True)
+                is_done = env.set_action(action)
             if event % self.event_cycle == 0:
                 ep += 1
                 self.reset_event(env, ep)
