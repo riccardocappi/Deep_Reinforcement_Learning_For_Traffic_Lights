@@ -16,13 +16,7 @@ class StaticPolicy(Simulation):
         while ep < self.epochs:
             event += 1
             _ = env.restart(state_as_matrix=False)
-            traci.trafficlight.setProgram(env.tl, "0")
-            sim_step = 0
-            while not not traci.simulation.getMinExpectedNumber() > 0:
-                traci.simulationStep()
-                sim_step += 1
-                if sim_step % 10 == 0:
-                    env.do_stats()
+            env.actuated_control()
             if event % self.event_cycle == 0:
                 ep += 1
                 self.reset_event(env, ep)
