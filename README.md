@@ -21,7 +21,7 @@ The program can be run with different arguments:
 - `--train` default False, determines whether the model is trained or not.
 - `--event` default 5, number of events which compose a training epoch.
 - `--epochs` default 40, number of training epochs.
-- `--model_type` default "cnn", it can be "cnn", "mlp", "mwf", "lqf". Determines which model is going to be executed.
+- `--model_type` default "cnn", it can be "cnn", "mlp", "mwf", "lqf", "static". Determines which model is going to be executed.
 - `--save` default False, determines whether to save the trained model or not.
 
 Examples:
