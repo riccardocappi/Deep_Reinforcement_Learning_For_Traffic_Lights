@@ -159,8 +159,8 @@ class Environment:
         self.last_jam_length_sum = sum_jam_length
         return signal, reward, is_done
 
-    def actuated_control(self):
-        traci.trafficlight.setProgram(self.tl, "0")
+    def actuated_control(self, program_id):
+        traci.trafficlight.setProgram(self.tl, program_id)
         sim_step = 0
         while traci.simulation.getMinExpectedNumber() > 0:
             traci.simulationStep()

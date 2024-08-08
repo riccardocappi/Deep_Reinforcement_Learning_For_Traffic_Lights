@@ -5,7 +5,7 @@ import argparse
 from src.Experiments.AIPolicy import AIPolicy
 from src.Experiments.HeuristicsPolicy import HeuristicsPolicy
 from src.Experiments.Simulation import RunModes
-from src.Experiments.StaticPolicy import StaticPolicy
+from src.Experiments.ActuatedPolicy import ActuatedPolicy
 
 
 if 'SUMO_HOME' in os.environ:
@@ -86,7 +86,9 @@ if __name__ == "__main__":
     elif model_type == 'mlp':
         experiment = AIPolicy(arguments, RunModes.MLP, 0.9)
     elif model_type == 'static':
-        experiment = StaticPolicy(arguments)
+        experiment = ActuatedPolicy(arguments, RunModes.STATIC)
+    elif model_type == 'actuated':
+        experiment = ActuatedPolicy(arguments, RunModes.ACTUATED)
     elif model_type == 'mwf':
         experiment = HeuristicsPolicy(arguments, RunModes.MWF)
     elif model_type == 'lqf':

@@ -2,7 +2,7 @@ from aenum import Enum
 from abc import ABC, abstractmethod
 from src.environment import Environment
 
-RunModes = Enum('Modes', ['CNN', 'MLP', 'STATIC', 'MWF', 'LQF'])
+RunModes = Enum('Modes', ['CNN', 'MLP', 'STATIC', 'MWF', 'LQF', 'ACTUATED'])
 
 
 def print_summary(max_len, max_wait, avg_len, avg_wait, ep):

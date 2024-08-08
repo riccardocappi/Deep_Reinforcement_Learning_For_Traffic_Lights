@@ -1,12 +1,14 @@
 from src.Experiments.Simulation import Simulation
 from src.environment import stop_sim
-import traci
+from src.Experiments.Simulation import RunModes
 
-class StaticPolicy(Simulation):
-    def __init__(self, args, sim_path="./Simulation/osm_1.sumocfg", concat=True):
+class ActuatedPolicy(Simulation):
+    def __init__(self, args, run_mode, sim_path="./Simulation/osm_1.sumocfg", concat=True):
         super().__init__(args)
         self.sim_path = sim_path
         self.concat = concat
+        assert run_mode == RunModes.STATIC or run_mode == RunModes.ACTUATED, "Invalid model type"
+        self.run_mode = run_mode
 
     # override
     def run(self):
@@ -16,7 +18,8 @@ class StaticPolicy(Simulation):
         while ep < self.epochs:
             event += 1
             _ = env.restart(state_as_matrix=False)
-            env.actuated_control()
+            program_id = "0" if self.run_mode == RunModes.ACTUATED else "1"
+            env.actuated_control(program_id)
             if event % self.event_cycle == 0:
                 ep += 1
                 self.reset_event(env, ep)
