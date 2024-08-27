@@ -131,8 +131,8 @@ class Environment:
                 j += 1
 
     def do_stats(self):
-        self.epoch_total_length.append(self.get_detectors_jam_length())
-        self.epoch_total_waiting_time.append(self.get_max_waiting_time_per_lane())
+        self.epoch_total_length = self.epoch_total_length + self.get_detectors_jam_length()
+        self.epoch_total_waiting_time = self.epoch_total_waiting_time + self.get_max_waiting_time_per_lane()
 
     def set_action(self, action, state_as_matrix=False):
         pred_phase = self.get_predicted_phase_state(action)
