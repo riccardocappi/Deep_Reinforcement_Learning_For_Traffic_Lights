@@ -6,6 +6,7 @@ from src.Architectures.MLP import Network
 from src.Experiments.Simulation import Simulation
 from src.environment import stop_sim
 from src.Experiments.Simulation import RunModes
+import torch
 
 # from torchsummary import summary
 
@@ -25,6 +26,7 @@ class AIPolicy(Simulation):
         self.check_best_brain = np.inf
         self.sim_path = sim_path
         self.concat = concat
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # override
     def run(self):
@@ -56,6 +58,7 @@ class AIPolicy(Simulation):
             model.eval()
         self.brain = load_model(self.gamma, self.model_name, model,
                                 target_model)
+        self.brain.to(device=self.device)
         return env
 
     # override

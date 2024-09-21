@@ -23,7 +23,7 @@ class ReplayMemory(object):
 
 class Dqn:
 
-    def __init__(self, gamma, model, target_model):
+    def __init__(self, gamma, model, target_model, device='cpu'):
         self.gamma = gamma
         self.temp_reward_window = []
         self.model = model
@@ -34,9 +34,16 @@ class Dqn:
         self.batch_size = 32
         self.target_model = target_model
         self.TAU = 1e-3
+        self.device = device
+        
+    def to(self, device='cpu'):
+        self.model.to(device)
+        self.target_model.to(device)
+        self.device = device
 
     def select_action(self, state):
         state = torch.unsqueeze(state, dim=0)
+        state = state.to(self.device)
         with torch.no_grad():
             probs = F.softmax(self.model(state)*75, dim=1)
         action = probs.multinomial(num_samples=1)
@@ -46,6 +53,12 @@ class Dqn:
                            batch_action, batch_is_done):
         batch_reward = batch_reward.view(self.batch_size,)
         batch_is_done = batch_is_done.view(self.batch_size, )
+        
+        batch_state = batch_state.to(self.device)
+        batch_next_state = batch_next_state.to(self.device)
+        batch_reward = batch_reward.to(self.device)
+        batch_action=batch_action.to(self.device)
+        batch_is_done = batch_is_done.to(self.device)
 
         outputs = self.model(batch_state).gather(1, batch_action).squeeze(1)
         with torch.no_grad():
