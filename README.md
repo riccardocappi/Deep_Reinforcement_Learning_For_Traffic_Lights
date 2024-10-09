@@ -10,6 +10,7 @@ The proposed model consists in a **Convolutional Neural Network** (CNN) trained 
 The performance of the proposed model were compared to those of the following baseline models:
 - A Multi Layer Perceptron (MLP) network;
 - A simple static configuration of the traffic lights signals;
+- A gap-based actuated traffic control system
 - Two models which implement the _most waiting first_ (MWF) heuristic and _longest queue first_ (LQF) heuristic.
 
 The folder Experiments contains the implementation of such models.

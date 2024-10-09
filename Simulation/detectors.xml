@@ -1,55 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- generated on 2022-06-19 19:21:19 by Eclipse SUMO netedit Version 1.12.0
-<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
-
-    <input>
-        <sumo-net-file value="C:\Users\ricca\PycharmProjects\DeepReinforcementLearning_TrafficLight\Simulation\osm.net.xml"/>
-    </input>
-
-    <output>
-        <output-file value="C:\Users\ricca\PycharmProjects\DeepReinforcementLearning_TrafficLight\Simulation\osm.net.xml"/>
-        <output.street-names value="true"/>
-    </output>
-
-    <processing>
-        <geometry.min-radius.fix.railways value="false"/>
-        <geometry.max-grade.fix value="false"/>
-        <offset.disable-normalization value="true"/>
-        <lefthand value="false"/>
-    </processing>
-
-    <junctions>
-        <no-turnarounds value="true"/>
-        <junctions.corner-detail value="5"/>
-        <junctions.limit-turn-speed value="5.5"/>
-        <rectangular-lane-cut value="false"/>
-    </junctions>
-
-    <pedestrian>
-        <walkingareas value="false"/>
-    </pedestrian>
-
-    <netedit>
-        <additional-files value="C:\Users\ricca\PycharmProjects\DeepReinforcementLearning_TrafficLight\Simulation\detectors.xml"/>
-    </netedit>
-
-    <report>
-        <aggregate-warnings value="5"/>
-    </report>
-
-</configuration>
+<!-- generated on 2024-09-30 16:25:43 by Eclipse SUMO netedit Version 1.19.0
 -->
 
 <additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/additional_file.xsd">
-    <e2Detector id="e2_0" lane="193714501#0_1" pos="107.78" length="200.00" freq="300.00" file="e2_0.xml"/>
-    <e2Detector id="e2_1" lane="193714501#0_0" pos="107.11" length="200.00" freq="300.00" file="e2_1.xml"/>
-    <e2Detector id="e2_4" lane="192748755#0_0" pos="2.10" length="100.00" freq="300.00" file="e2_4.xml"/>
-    <e2Detector id="e2_5" lane="192748755#0_1" pos="2.26" length="100.00" freq="300.00" file="e2_5.xml"/>
-    <e2Detector id="via_inn_fin" lane="406769345_0" pos="6.39" length="40.00" freq="300.00" file="e2_2.xml"/>
-    <e2Detector id="via_inn_fin_1" lane="406769345_1" pos="7.05" length="40.00" freq="300.00" file="e2_3.xml"/>
-    <e2Detector id="via_inn_int" lane="-406769344#0_0" pos="0.26" length="14.00" freq="300.00" file="e2_7.xml"/>
-    <e2Detector id="via_inn_int_1" lane="-406769344#0_1" pos="4.30" length="10.00" freq="300.00" file="e2_8.xml"/>
-    <e2Detector id="via_inn_start" lane="-406769344#2_0" pos="8.03" length="140.00" freq="300.00" file="e2_6.xml"/>
-    <e2Detector id="via_inn_start_1" lane="-406769344#2_1" pos="8.16" length="140.00" freq="300.00" file="e2_9.xml"/>
+    <!-- Detectors -->
+    <laneAreaDetector id="e2_0" lane="193714501#0_1" pos="107.78" length="200.00" period="300.00" file="e2_0.xml"/>
+    <laneAreaDetector id="e2_1" lane="193714501#0_0" pos="107.11" length="200.00" period="300.00" file="e2_1.xml"/>
+    <laneAreaDetector id="e2_4" lane="192748755#0_0" pos="2.10" length="100.00" period="300.00" file="e2_4.xml"/>
+    <laneAreaDetector id="e2_5" lane="192748755#0_1" pos="2.26" length="100.00" period="300.00" file="e2_5.xml"/>
+    <laneAreaDetector id="via_inn_fin" lane="406769345_0" pos="6.39" length="40.00" period="300.00" file="e2_2.xml"/>
+    <laneAreaDetector id="via_inn_fin_1" lane="406769345_1" pos="7.05" length="40.00" period="300.00" file="e2_3.xml"/>
+    <laneAreaDetector id="via_inn_int" lane="-406769344#0_0" pos="0.26" length="14.00" period="300.00" file="e2_7.xml"/>
+    <laneAreaDetector id="via_inn_int_1" lane="-406769344#0_1" pos="4.30" length="10.00" period="300.00" file="e2_8.xml"/>
+    <laneAreaDetector id="via_inn_start" lane="-406769344#2_0" pos="8.03" length="140.00" period="300.00" file="e2_6.xml"/>
+    <laneAreaDetector id="via_inn_start_1" lane="-406769344#2_1" pos="8.16" length="140.00" period="300.00" file="e2_9.xml"/>
 </additional>
